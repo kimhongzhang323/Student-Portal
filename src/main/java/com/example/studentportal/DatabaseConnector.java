@@ -26,7 +26,6 @@ public class DatabaseConnector {
             DB_PASSWORD = prop.getProperty("db.password");
         } catch (IOException e) {
             System.err.println("Error loading database configuration!");
-            e.printStackTrace();
         }
     }
 
@@ -37,7 +36,6 @@ public class DatabaseConnector {
             return conn;
         } catch (SQLException e) {
             System.err.println("Connection failed!");
-            e.printStackTrace();
             return null;
         }
     }
