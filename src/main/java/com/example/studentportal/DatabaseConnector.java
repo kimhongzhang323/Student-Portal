@@ -8,39 +8,52 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 public class DatabaseConnector {
-    private static String DB_URL;
-    private static String DB_USER;
-    private static String DB_PASSWORD;
 
-    // Load database configuration from a properties file in the classpath
+    private static final String PROPERTIES_FILE = "/db.properties"; // Use '/' for cross-platform compatibility
+    private static String URL;
+    private static String USERNAME;
+    private static String PASSWORD;
+    private Connection connection;
+
     static {
-        try (InputStream input = DatabaseConnector.class.getClassLoader().getResourceAsStream("db.properties")) {
+        try (InputStream input = DatabaseConnector.class.getResourceAsStream(PROPERTIES_FILE)) {
+            Properties properties = new Properties();
             if (input == null) {
-                System.err.println("Sorry, unable to find db.properties");
-                throw new IllegalStateException("Sorry, unable to find db.properties");
+                System.err.println("Sorry, unable to find " + PROPERTIES_FILE);
+                throw new IOException("Unable to find the database properties file.");
             }
-            Properties prop = new Properties();
-            prop.load(input);
-            DB_URL = prop.getProperty("db.url");
-            DB_USER = prop.getProperty("db.user");
-            DB_PASSWORD = prop.getProperty("db.password");
-        } catch (IOException e) {
-            System.err.println("Error loading database configuration!");
+            properties.load(input);
+            URL = properties.getProperty("db.url");
+            USERNAME = properties.getProperty("db.username");
+            PASSWORD = properties.getProperty("db.password");
+        } catch (IOException ex) {
+            System.err.println("IOException occurred while loading properties: " + ex.getMessage());
         }
     }
 
-    public static Connection connect() {
-        try {
-            Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
-            System.out.println("Connection established!");
-            return conn;
-        } catch (SQLException e) {
-            System.err.println("Connection failed!");
-            return null;
+    // Method to establish a connection
+    public Connection getConnection() throws SQLException {
+        if (connection == null || connection.isClosed()) {
+            try {
+                connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+                System.out.println("Connection established.");
+            } catch (SQLException e) {
+                System.err.println("Failed to connect to the database: " + e.getMessage());
+                throw e; // Re-throw the exception after logging
+            }
         }
+        return connection;
     }
 
-    public static void main(String[] args) {
-        connect();
+    // Method to close the connection
+    public void closeConnection() {
+        if (connection != null) {
+            try {
+                connection.close();
+                System.out.println("Connection closed.");
+            } catch (SQLException e) {
+                System.err.println("Error while closing connection: " + e.getMessage());
+            }
+        }
     }
 }
