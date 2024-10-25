@@ -12,8 +12,8 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source> <!-- Use a more recent version -->
-        <maven.compiler.target>1.8</maven.compiler.target> <!-- Use a more recent version -->
+        <maven.compiler.source>1.8</maven.compiler.source> <!-- You can use a more recent version -->
+        <maven.compiler.target>1.8</maven.compiler.target> <!-- You can use a more recent version -->
     </properties>
 
     <dependencies>
@@ -26,9 +26,23 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.32</version> <!-- Ensure this is the version you need -->
+            <version>8.0.32</version>
         </dependency>
+        
+<!-- Add your existing dependencies here -->
+
+        <dependency>
+
+            <groupId>org.springframework.security</groupId>
+
+            <artifactId>spring-security-core</artifactId>
+
+            <version>5.7.1</version>
+
+        </dependency>
+
     </dependencies>
+
 
     <build>
         <pluginManagement>

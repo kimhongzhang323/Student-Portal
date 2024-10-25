@@ -35,6 +35,89 @@ public class Main {
         }
     }
 
+    private static void signUp(Scanner scanner, UserDAO userDAO) {
+        System.out.println("=== User Sign-Up ===");
+
+        // Prompt for user input
+        String email;
+        while (true) {
+            System.out.print("Enter your email (format: MatricID@siswa.um.edu.my): ");
+            email = scanner.nextLine();
+            if (isValidEmail(email)) {
+                break; // Exit loop if valid
+            } else {
+                System.out.println("Invalid email format. Please enter a valid email.");
+            }
+        }
+
+        // Extract student ID from email
+        String studentId = email.substring(0, 8);
+        int matricNumber = Integer.parseInt(studentId);
+
+        // Verify that the matric number is the same as the student ID in the email
+        System.out.print("Enter your matric number (must match the 8-digit student ID in the email): ");
+        int inputMatricNumber = Integer.parseInt(scanner.nextLine());
+
+        while (inputMatricNumber != matricNumber) {
+            System.out.println("Matric number does not match the student ID in the email. Please try again.");
+            System.out.print("Enter your matric number: ");
+            inputMatricNumber = Integer.parseInt(scanner.nextLine());
+        }
+
+        String password;
+        while (true) {
+            System.out.print("Enter your password: ");
+            password = scanner.nextLine();
+            if (isValidPassword(password)) {
+                break; // Exit loop if valid
+            } else {
+                System.out.println("Password must be at least 8 characters long and contain at least one digit and one letter.");
+            }
+        }
+
+        // Hash the password before storing it
+        String hashedPassword = PasswordUtil.hashPassword(password);
+
+        // Display academic subjects before prompting for input
+        displayAcademicSubjects("src/main/java/com/example/studentportal/AcademicSubjects.txt");
+
+        System.out.print("Enter your academic subjects (comma-separated): ");
+        String subjectsInput = scanner.nextLine();
+        List<String> academicSubjects = Arrays.asList(subjectsInput.split("\\s*,\\s*")); // Split by commas and trim spaces
+
+        displayCoCurricularClubs("src/main/java/com/example/studentportal/ClubSocieties.txt");
+        System.out.print("Enter your co-curricular clubs (comma-separated): ");
+        String clubsInput = scanner.nextLine();
+        List<String> coCurricularClubs = Arrays.asList(clubsInput.split("\\s*,\\s*")); // Split by commas and trim spaces
+
+        // Create a new user object with hashed password
+        User newUser = new User(email, matricNumber, hashedPassword, academicSubjects, coCurricularClubs);
+
+        try {
+            boolean signUpSuccess = userDAO.signUp(newUser);
+            if (signUpSuccess) {
+                System.out.println("Sign-Up Successful!");
+            } else {
+                System.out.println("Sign-Up Failed. Email may already be in use.");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error occurred during sign-up: " + e.getMessage());
+        }
+    }
+
+    // Other methods remain unchanged...
+
+    // Method to validate email format
+    private static boolean isValidEmail(String email) {
+        String emailRegex = "^\\d{8}@siswa\\.um\\.edu\\.my$";  // Regex for studentid(8digits)@siswa.um.edu.my
+        return email.matches(emailRegex);
+    }
+
+    // Method to validate password strength
+    private static boolean isValidPassword(String password) {
+        return password.length() >= 8 && password.matches(".*[A-Za-z].*") && password.matches(".*\\d.*");
+    }
+
     private static void displayAcademicSubjects(String filename) {
         List<String> subjects = readSubjectsFromFile(filename);
 
@@ -76,84 +159,5 @@ public class Main {
             System.out.println("Error reading the file: " + e.getMessage());
         }
         return items;
-    }
-
-    private static void signUp(Scanner scanner, UserDAO userDAO) {
-        System.out.println("=== User Sign-Up ===");
-    
-        // Prompt for user input
-        String email;
-        while (true) {
-            System.out.print("Enter your email (format: MatricID@siswa.um.edu.my): ");
-            email = scanner.nextLine();
-            if (isValidEmail(email)) {
-                break; // Exit loop if valid
-            } else {
-                System.out.println("Invalid email format. Please enter a valid email.");
-            }
-        }
-    
-        // Extract student ID from email
-        String studentId = email.substring(0, 8);
-        int matricNumber = Integer.parseInt(studentId);
-    
-        // Verify that the matric number is the same as the student ID in the email
-        System.out.print("Enter your matric number (must match the 8-digit student ID in the email): ");
-        int inputMatricNumber = Integer.parseInt(scanner.nextLine());
-    
-        while (inputMatricNumber != matricNumber) {
-            System.out.println("Matric number does not match the student ID in the email. Please try again.");
-            System.out.print("Enter your matric number: ");
-            inputMatricNumber = Integer.parseInt(scanner.nextLine());
-        }
-    
-        String password;
-        while (true) {
-            System.out.print("Enter your password: ");
-            password = scanner.nextLine();
-            if (isValidPassword(password)) {
-                break; // Exit loop if valid
-            } else {
-                System.out.println("Password must be at least 8 characters long and contain at least one digit and one letter.");
-            }
-        }
-    
-        // Display academic subjects before prompting for input
-        displayAcademicSubjects("src/main/java/com/example/studentportal/AcademicSubjects.txt");
-    
-        System.out.print("Enter your academic subjects (comma-separated): ");
-        String subjectsInput = scanner.nextLine();
-        List<String> academicSubjects = Arrays.asList(subjectsInput.split("\\s*,\\s*")); // Split by commas and trim spaces
-    
-        displayCoCurricularClubs("src/main/java/com/example/studentportal/ClubSocieties.txt");
-        System.out.print("Enter your co-curricular clubs (comma-separated): ");
-        String clubsInput = scanner.nextLine();
-        List<String> coCurricularClubs = Arrays.asList(clubsInput.split("\\s*,\\s*")); // Split by commas and trim spaces
-    
-        // Create a new user object
-        User newUser = new User(email, matricNumber, password, academicSubjects, coCurricularClubs);
-    
-        try {
-            boolean signUpSuccess = userDAO.signUp(newUser);
-            if (signUpSuccess) {
-                System.out.println("Sign-Up Successful!");
-            } else {
-                System.out.println("Sign-Up Failed. Email may already be in use.");
-            }
-        } catch (SQLException e) {
-            System.out.println("Error occurred during sign-up: " + e.getMessage());
-        }
-    }
-    
-
-    // Method to validate email format
-    private static boolean isValidEmail(String email) {
-        String emailRegex = "^\\d{8}@siswa\\.um\\.edu\\.my$";  // Regex for studentid(8digits)@siswa.um.edu.my
-        return email.matches(emailRegex);
-    }
-
-    // Method to validate password strength
-    private static boolean isValidPassword(String password) {
-        return password.length() >= 8 && password.matches(".*[A-Za-z].*") && password.matches(".*\\d.*");
     }
 }
