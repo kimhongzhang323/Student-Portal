@@ -1,0 +1,4 @@
+id,email,matric_number,password,academic_subjects,co_curricular_clubs
+1,s100203@student.fop,100203,securePassword123,[1103, 1119, 1225],[B07, P82, S01]
+5,23096158@siswa.um.edu.my,100203,securePassword123,[1103, 1119, 1225],[B07, P82, S01]
+7,23096157@siswa.um.edu.my,100203,securePassword123,[1103, 1119, 1225],[B07, P82, S01]
