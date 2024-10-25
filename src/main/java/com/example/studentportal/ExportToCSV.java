@@ -4,19 +4,16 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
 public class ExportToCSV {
 
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/student_info";
-    private static final String USERNAME = "kimho";
-    private static final String PASSWORD = "buku3b3B";
-
     public static void main(String[] args) {
-        try (Connection connection = DriverManager.getConnection(DB_URL, USERNAME, PASSWORD)) {
+        DatabaseConnector connector = new DatabaseConnector();
+
+        try (Connection connection = connector.getConnection()) {
             System.out.println("Connected to the database.");
 
             // Export each table
@@ -62,4 +59,3 @@ public class ExportToCSV {
         }
     }
 }
-
