@@ -143,7 +143,7 @@ public class CoCurriculumCalculator {
 
         // Create a map to store the marks for each student
         Map<String, List<Integer>> studentMarks = new HashMap<>();
-
+        // Calculate marks for each student
         for (StudentPosition sp : positions) {
             String matricNumber = sp.getMatricNumber();
             List<Integer> marksList = new ArrayList<>();

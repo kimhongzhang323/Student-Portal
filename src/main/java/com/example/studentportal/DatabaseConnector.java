@@ -13,7 +13,7 @@ public class DatabaseConnector {
     private static String USERNAME;
     private static String PASSWORD;
     private Connection connection;
-
+    // Load the properties file
     static {
         try (InputStream input = DatabaseConnector.class.getResourceAsStream(PROPERTIES_FILE)) {
             Properties properties = new Properties();
@@ -29,7 +29,7 @@ public class DatabaseConnector {
             System.err.println("IOException occurred: " + ex.getMessage());
         }
     }
-
+    // Get the connection
     public Connection getConnection() throws SQLException {
         if (connection == null || connection.isClosed()) {
             try {
@@ -42,7 +42,7 @@ public class DatabaseConnector {
         }
         return connection;
     }
-
+    // Close the connection
     public void closeConnection() throws SQLException {
         if (connection != null && !connection.isClosed()) {
             connection.close();
