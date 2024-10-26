@@ -11,7 +11,7 @@ import java.util.Properties;
  * A class for managing the connection to a database.
  */
 public class DatabaseConnector {
-    private static final String PROPERTIES_FILE = "src\\main\\resources\\db.properties"; // Path to the properties file
+    private static final String PROPERTIES_FILE = "/db.properties";
     private static String URL; // Database URL
     private static String USERNAME; // Database username
     private static String PASSWORD; // Database password

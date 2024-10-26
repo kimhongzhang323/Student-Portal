@@ -11,7 +11,7 @@ import java.util.Arrays;
  * This class provides methods for user signup, login, and existence check.
  */
 public class UserDAO {
-    private Connection connection;
+    private final Connection connection;
 
     /**
      * Constructor to initialize UserDAO with a database connection.
@@ -83,7 +83,8 @@ public class UserDAO {
                     resultSet.getInt("matric_number"),
                     resultSet.getString("password"),
                     Arrays.asList(resultSet.getString("academic_subjects").split(",")),
-                    Arrays.asList(resultSet.getString("co_curricular_clubs").split(","))
+                    Arrays.asList(resultSet.getString("co_curricular_clubs").split(",")),
+                    resultSet.getBytes("profile_picture") // Assuming the byte[] field is named 'profile_picture'
                 );
             }
         }

@@ -44,7 +44,7 @@ public class ExportToCSV {
      * @param tableName  the name of the table to export
      * @param fileName   the name of the CSV file to create
      */
-    private static void exportTableToCSV(Connection connection, String tableName, String fileName) {
+    public static void exportTableToCSV(Connection connection, String tableName, String fileName) {
         String query = "SELECT * FROM " + tableName; // SQL query to select all data from the table
 
         try (Statement statement = connection.createStatement();

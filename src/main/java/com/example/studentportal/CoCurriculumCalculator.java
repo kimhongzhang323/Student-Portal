@@ -74,9 +74,9 @@ class StudentPosition {
 public class CoCurriculumCalculator {
 
     // Maps to store marks references
-    private Map<String, Integer> positionMarks = new HashMap<>();
-    private Map<String, Integer> activityLevelMarks = new HashMap<>();
-    private Map<String, Integer> achievementLevelMarks = new HashMap<>();
+    private final Map<String, Integer> positionMarks = new HashMap<>();
+    private final Map<String, Integer> activityLevelMarks = new HashMap<>();
+    private final Map<String, Integer> achievementLevelMarks = new HashMap<>();
 
     private static final int MAX_ATTENDANCE = 50; // Maximum attendance marks
 

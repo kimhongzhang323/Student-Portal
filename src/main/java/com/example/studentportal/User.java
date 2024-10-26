@@ -1,5 +1,7 @@
 package com.example.studentportal;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -18,6 +20,7 @@ public class User {
     private String password;
     private List<String> academicSubjects;
     private List<String> coCurricularClubs;
+    private byte[] salt; // Declare the salt field
 
     /**
      * Constructor to initialize a User object.
@@ -27,13 +30,15 @@ public class User {
      * @param password           the user's password
      * @param academicSubjects    list of academic subjects the user is enrolled in
      * @param coCurricularClubs   list of co-curricular clubs the user is part of
+     * @param salt               the salt used for password hashing
      */
-    public User(String email, int matricNumber, String password, List<String> academicSubjects, List<String> coCurricularClubs) {
+    public User(String email, int matricNumber, String password, List<String> academicSubjects, List<String> coCurricularClubs, byte[] salt) {
         this.email = email;
         this.matricNumber = matricNumber;
         this.password = password;
         this.academicSubjects = academicSubjects;
         this.coCurricularClubs = coCurricularClubs;
+        this.salt = salt; // Initialize salt
     }
 
     // Getters and Setters
@@ -86,6 +91,10 @@ public class User {
         this.coCurricularClubs = coCurricularClubs; // Allows updating the list of co-curricular clubs
     }
 
+    public byte[] getSalt() {
+        return salt; // Getter for salt
+    }
+
     /**
      * Displays user information in a readable format.
      */
@@ -102,7 +111,7 @@ public class User {
      * This method establishes a database connection, executes a query to retrieve user data,
      * and creates User objects based on the result set.
      */
-    public void fetchUsers() {
+    public void fetchUsers() throws NoSuchAlgorithmException, InvalidKeySpecException {
         DatabaseConnector connector = new DatabaseConnector();
         List<User> userList = new ArrayList<>(); // List to store fetched users
 
@@ -119,8 +128,10 @@ public class User {
                     int matricNumber = resultSet.getInt("matric_number");
                     String password = resultSet.getString("password");
 
-                    // Create a User object and add it to the userList
-                    User user = new User(email, matricNumber, password, new ArrayList<>(), new ArrayList<>());
+                    // Assuming you have a method to generate salt and hash password
+                    byte[] salt = PasswordHashing.generateSalt(); // or however you're generating salt
+                    User user = new User(email, matricNumber, password, academicSubjects, coCurricularClubs, salt);
+                    ;
                     userList.add(user);
                 }
 
