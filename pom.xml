@@ -12,21 +12,36 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source> <!-- Use a more recent version -->
-        <maven.compiler.target>1.8</maven.compiler.target> <!-- Use a more recent version -->
+        <maven.compiler.source>1.8</maven.compiler.source> <!-- You can use a more recent version -->
+        <maven.compiler.target>1.8</maven.compiler.target> <!-- You can use a more recent version -->
     </properties>
 
     <dependencies>
+        <!-- JUnit for testing -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.11</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- MySQL Connector -->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.32</version> <!-- Ensure this is the version you need -->
+            <version>8.0.32</version>
+        </dependency>
+
+        <!-- Apache POI for Excel file generation -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>5.2.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.2.3</version>
         </dependency>
     </dependencies>
 
