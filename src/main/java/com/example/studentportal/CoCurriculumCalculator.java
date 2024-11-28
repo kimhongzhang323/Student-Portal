@@ -10,9 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Represents an activity that a student participates in.
- */
 class Activity {
     String matricNumber; // Student's matriculation number
     String clubCode; // Code for the club
@@ -20,15 +17,6 @@ class Activity {
     String activityLevel; // Level of the activity
     String achievement; // Achievement related to the activity
 
-    /**
-     * Constructor for Activity.
-     *
-     * @param matricNumber  the student's matriculation number
-     * @param clubCode      the code for the club
-     * @param activityName  the name of the activity
-     * @param activityLevel the level of the activity
-     * @param achievement    the achievement related to the activity
-     */
     public Activity(String matricNumber, String clubCode, String activityName, String activityLevel, String achievement) {
         this.matricNumber = matricNumber;
         this.clubCode = clubCode;
@@ -45,56 +33,34 @@ class Activity {
     public String getActivityName() { return activityName; }
 }
 
-/**
- * Represents a student's position in various activities.
- */
 class StudentPosition {
     String matricNumber; // Student's matriculation number
     List<String> positions; // List of positions held by the student
 
-    /**
-     * Constructor for StudentPosition.
-     *
-     * @param matricNumber the student's matriculation number
-     * @param positions    list of positions held by the student
-     */
     public StudentPosition(String matricNumber, List<String> positions) {
         this.matricNumber = matricNumber;
         this.positions = positions;
     }
 
-    // Getters for StudentPosition properties
     public String getMatricNumber() { return matricNumber; }
     public List<String> getPositions() { return positions; }
 }
 
-/**
- * Calculates co-curricular marks based on student activities and positions.
- */
 public class CoCurriculumCalculator {
 
-    // Maps to store marks references
     private final Map<String, Integer> positionMarks = new HashMap<>();
     private final Map<String, Integer> activityLevelMarks = new HashMap<>();
     private final Map<String, Integer> achievementLevelMarks = new HashMap<>();
 
     private static final int MAX_ATTENDANCE = 50; // Maximum attendance marks
 
-    /**
-     * Constructor for CoCurriculumCalculator. Initializes marks references.
-     */
     public CoCurriculumCalculator() {
         loadMarksReference("positions.csv", positionMarks);
         loadMarksReference("activity_levels.csv", activityLevelMarks);
         loadMarksReference("achievements.csv", achievementLevelMarks);
     }
 
-    /**
-     * Loads marks reference data from a CSV file into the provided map.
-     *
-     * @param filename   the name of the CSV file
-     * @param marksMap   the map to store the loaded marks
-     */
+
     private void loadMarksReference(String filename, Map<String, Integer> marksMap) {
         try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
             String line;
@@ -118,13 +84,7 @@ public class CoCurriculumCalculator {
         }
     }
 
-    /**
-     * Reads activities from a CSV file.
-     *
-     * @param filename the name of the CSV file
-     * @return a list of Activity objects
-     * @throws IOException if an I/O error occurs
-     */
+
     private static List<Activity> readActivities(String filename) throws IOException {
         List<Activity> activities = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
@@ -142,13 +102,6 @@ public class CoCurriculumCalculator {
         return activities;
     }
 
-    /**
-     * Reads student positions from a CSV file.
-     *
-     * @param filename the name of the CSV file
-     * @return a list of StudentPosition objects
-     * @throws IOException if an I/O error occurs
-     */
     private static List<StudentPosition> readPositions(String filename) throws IOException {
         List<StudentPosition> positions = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
@@ -167,13 +120,6 @@ public class CoCurriculumCalculator {
         return positions;
     }
 
-    /**
-     * Calculates marks for students based on activities and positions.
-     *
-     * @param activitiesFile the filename containing activity records
-     * @param positionsFile  the filename containing student position records
-     * @throws IOException if an I/O error occurs
-     */
     public void calculateMarks(String activitiesFile, String positionsFile) throws IOException {
         List<Activity> activities = readActivities(activitiesFile);
         List<StudentPosition> positions = readPositions(positionsFile);
@@ -196,14 +142,6 @@ public class CoCurriculumCalculator {
         }
     }
 
-    /**
-     * Calculates total marks for a student in a specific club.
-     *
-     * @param matricNumber the student's matriculation number
-     * @param clubCode     the club code
-     * @param activities   the list of activities for the students
-     * @return the total marks for the student in the club
-     */
     private int calculateClubMarks(String matricNumber, String clubCode, List<Activity> activities) {
         // Initialize marks
         int attendanceMarks = MAX_ATTENDANCE; // Assuming full attendance
@@ -232,25 +170,12 @@ public class CoCurriculumCalculator {
         return totalMarks;
     }
 
-    /**
-     * Retrieves the marks for a student's position in a specific club.
-     *
-     * @param matricNumber the student's matriculation number
-     * @param clubCode     the club code
-     * @return the marks for the position, or 0 if not found
-     */
     private int getPositionMarks(String matricNumber, String clubCode) {
         // Retrieve the position for the given student in the specific club
         // For simplicity, let's assume you can derive it from the student's positions
         return positionMarks.getOrDefault("Committee", 0); // Default value
     }
 
-    /**
-     * Generates a transcript for a student and prints it to the console.
-     *
-     * @param matricNumber the student's matriculation number
-     * @param marksList    the list of marks for the student
-     */
     private void generateTranscript(String matricNumber, List<Integer> marksList) {
         System.out.println("Transcript for student " + matricNumber);
         System.out.println("============================================================");
@@ -268,12 +193,6 @@ public class CoCurriculumCalculator {
         }
         System.out.println("============================================================\n");
     }
-
-    /**
-     * Main method to run the CoCurriculumCalculator.
-     *
-     * @param args command-line arguments (not used)
-     */
     public static void main(String[] args) {
         try {
             CoCurriculumCalculator calculator = new CoCurriculumCalculator();

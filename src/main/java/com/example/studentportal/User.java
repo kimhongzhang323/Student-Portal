@@ -4,9 +4,8 @@ import java.util.List;
 
 public class User {
     private String email;
-    private String name;
-    private int matricNumber;
-    private String password;
+    private final int matricNumber;
+    private final String password;
     private List<String> academicSubjects;
     private List<String> coCurricularClubs;
     private byte[] salt;
