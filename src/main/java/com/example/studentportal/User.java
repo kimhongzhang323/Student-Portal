@@ -4,13 +4,13 @@ import java.util.List;
 
 public class User {
     private String email;
-    private final int matricNumber;
+    private final String matricNumber;
     private final String password;
     private List<String> academicSubjects;
     private List<String> coCurricularClubs;
     private byte[] salt;
 
-    public User(String email, int matricNumber, String password, List<String> academicSubjects, List<String> coCurricularClubs, byte[] salt) {
+    public User(String email, String matricNumber, String password, List<String> academicSubjects, List<String> coCurricularClubs, byte[] salt) {
         this.email = email;
         this.matricNumber = matricNumber;
         this.password = password;
