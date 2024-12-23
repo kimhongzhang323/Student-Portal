@@ -6,10 +6,11 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class coCurriculumMark {
+public class coCurriculum {
 
     static int totalMark = 0;
 
+    // Method to fetch user details
     public static void fetchUser() {
         try (BufferedReader r = new BufferedReader(new FileReader("user.txt"))) {
             String line;
@@ -19,10 +20,9 @@ public class coCurriculumMark {
                 String password = r.readLine();
                 String academicSubjects = r.readLine();
                 String coCurricularClubs = r.readLine();
-                String salt = r.readLine(); // Assuming the salt is on the next line, if not, remove this line
 
                 if (email != null && matricNumber != null && password != null && academicSubjects != null && coCurricularClubs != null) {
-                    // Process the user data
+
                 } else {
                     System.out.println("Invalid user entry: " + line);
                 }
@@ -32,6 +32,7 @@ public class coCurriculumMark {
         }
     }
 
+    // Method to fetch co-curricular clubs and display clubs
     public static void GetUserCocurriculum() {
         Map<String, String> clubMap = new HashMap<>();
         try (BufferedReader r = new BufferedReader(new FileReader("coCurricularClubs.txt"))) {
@@ -54,7 +55,6 @@ public class coCurriculumMark {
                 String password = r.readLine();
                 String academicSubjects = r.readLine();
                 String coCurricularClubs = r.readLine();
-                String salt = r.readLine(); // Assuming the salt is on the next line, if not, remove this line
 
                 if (email != null && matricNumber != null && password != null && academicSubjects != null && coCurricularClubs != null) {
                     String[] clubCodes = coCurricularClubs.split(",");
@@ -86,6 +86,7 @@ public class coCurriculumMark {
         }
     }
 
+    // Method to return position mark
     public static int positionMark(String position) {
         int mark = 0;
         switch (position) {
@@ -111,6 +112,7 @@ public class coCurriculumMark {
         return mark;
     }
 
+    // Method to return achievement level mark
     public static int AchievementLevelMark(String achievementLevel) {
         int mark = 0;
         switch (achievementLevel) {
@@ -133,28 +135,7 @@ public class coCurriculumMark {
         return mark;
     }
 
-    public static void readActivitiesLog() {
-        try (BufferedReader r = new BufferedReader(new FileReader("activitiesLog.txt"))) {
-            String line;
-            while ((line = r.readLine()) != null) {
-                String[] parts = line.split(",");
-                if (parts.length == 5) {
-                    String studentId = parts[0];
-                    String activityCode = parts[1];
-                    String activityName = parts[2];
-                    String levelOfActivities = parts[3];
-                    String achievementLevel = parts[4];
-                    int mark = positionMark(activityCode) + activitiesParticipatedMark(levelOfActivities) + AchievementLevelMark(achievementLevel);
-                    totalMark += mark;
-                } else {
-                    System.out.println("Invalid log entry: " + line);
-                }
-            }
-        } catch (IOException e) {
-            System.out.println("Error reading activities log");
-        }
-    }
-
+    // Function to return activities participated mark
     public static int activitiesParticipatedMark(String levelofActivities) {
         int mark = 0;
         switch (levelofActivities) {
@@ -177,7 +158,32 @@ public class coCurriculumMark {
         return mark;
     }
 
-    public static void main(String[] args) {
-        GetUserCocurriculum();
+
+    // Function to read activities log from file
+    public static void readActivitiesLog() {
+        try (BufferedReader r = new BufferedReader(new FileReader("activitiesLog.txt"))) {
+            String line;
+            while ((line = r.readLine()) != null) { 
+                String[] parts = line.split(",");
+                if (parts.length == 5) {
+                    String studentId = parts[0];
+                    String activityCode = parts[1];
+                    String activityName = parts[2];
+                    String levelOfActivities = parts[3];
+                    String achievementLevel = parts[4];
+                    int mark = positionMark(activityCode) + activitiesParticipatedMark(levelOfActivities) + AchievementLevelMark(achievementLevel);
+                    totalMark += mark;
+                } else {
+                    System.out.println("Invalid log entry: " + line);
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error reading activities log");
+        }
     }
+
+
+    
+
+    
 }
