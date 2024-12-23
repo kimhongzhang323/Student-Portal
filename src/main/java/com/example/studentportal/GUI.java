@@ -15,9 +15,10 @@ public class GUI {
     private static List<String> coCurricularClubs = new ArrayList<>();
 
     public static void main(String[] args) {
-        loadAcademicSubjects();
-        loadCoCurricularClubs();
+        loadAcademicSubjects();  // Load academic subjects from file
+        loadCoCurricularClubs(); // Load co-curricular clubs from file
 
+        // Create and display the login page
         JFrame frame = new JFrame("Login Page");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH); // Set to fullscreen
@@ -35,6 +36,7 @@ public class GUI {
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
+        // Add User label and text field
         JLabel userLabel = new JLabel("User:");
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -44,6 +46,7 @@ public class GUI {
         gbc.gridx = 1;
         panel.add(userText, gbc);
 
+        // Add Password label and password field
         JLabel passwordLabel = new JLabel("Password:");
         gbc.gridx = 0;
         gbc.gridy = 1;
@@ -53,6 +56,7 @@ public class GUI {
         gbc.gridx = 1;
         panel.add(passwordText, gbc);
 
+        // Add Login and Register buttons
         JButton loginButton = new JButton("Login");
         gbc.gridx = 0;
         gbc.gridy = 2;
@@ -62,6 +66,7 @@ public class GUI {
         gbc.gridx = 1;
         panel.add(registerButton, gbc);
 
+        // Handle login button action
         loginButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -82,6 +87,7 @@ public class GUI {
             }
         });
 
+        // Handle register button action
         registerButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -108,6 +114,7 @@ public class GUI {
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
+        // Add User label and text field
         JLabel userLabel = new JLabel("User:");
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -117,6 +124,7 @@ public class GUI {
         gbc.gridx = 1;
         panel.add(userText, gbc);
 
+        // Add Password label and password field
         JLabel passwordLabel = new JLabel("Password:");
         gbc.gridx = 0;
         gbc.gridy = 1;
@@ -126,6 +134,7 @@ public class GUI {
         gbc.gridx = 1;
         panel.add(passwordText, gbc);
 
+        // Add Confirm Password label and field
         JLabel confirmPasswordLabel = new JLabel("Confirm Password:");
         gbc.gridx = 0;
         gbc.gridy = 2;
@@ -135,60 +144,32 @@ public class GUI {
         gbc.gridx = 1;
         panel.add(confirmPasswordText, gbc);
 
-        JLabel academicSubjectsDescription = new JLabel("Hold Ctrl (Cmd on Mac) to select multiple subjects:");
-        gbc.gridy = 3;
-        gbc.gridwidth = 2;
-        panel.add(academicSubjectsDescription, gbc);
-
-        JList<String> academicSubjectsList = new JList<>(academicSubjects.toArray(new String[0]));
-        academicSubjectsList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-        academicSubjectsList.setVisibleRowCount(5);
-        JScrollPane academicSubjectsScroll = new JScrollPane(academicSubjectsList);
-        gbc.gridy = 4;
-        panel.add(academicSubjectsScroll, gbc);
-
-        JLabel coCurricularClubsDescription = new JLabel("Hold Ctrl (Cmd on Mac) to select multiple clubs:");
-        gbc.gridy = 5;
-        panel.add(coCurricularClubsDescription, gbc);
-
-        JList<String> coCurricularClubsList = new JList<>(coCurricularClubs.toArray(new String[0]));
-        coCurricularClubsList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-        coCurricularClubsList.setVisibleRowCount(5);
-        JScrollPane coCurricularClubsScroll = new JScrollPane(coCurricularClubsList);
-        gbc.gridy = 6;
-        panel.add(coCurricularClubsScroll, gbc);
-
+        // Add Register button and Back button
         JButton registerButton = new JButton("Register");
-        gbc.gridy = 7;
+        gbc.gridy = 3;
         panel.add(registerButton, gbc);
 
         JButton backButton = new JButton("Back");
-        gbc.gridy = 8;
+        gbc.gridy = 4;
         panel.add(backButton, gbc);
 
+        // Handle register button action
         registerButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String user = userText.getText();
                 String password = new String(passwordText.getPassword());
                 String confirmPassword = new String(confirmPasswordText.getPassword());
-                List<String> selectedAcademicSubjects = academicSubjectsList.getSelectedValuesList();
-                List<String> selectedCoCurricularClubs = coCurricularClubsList.getSelectedValuesList();
 
                 if (password.equals(confirmPassword)) {
-                    if (!selectedAcademicSubjects.isEmpty() && !selectedCoCurricularClubs.isEmpty()) {
-                        JOptionPane.showMessageDialog(null, "Registration successful\nUser: " + user +
-                                "\nAcademic Subjects: " + String.join(", ", selectedAcademicSubjects) +
-                                "\nCo-Curricular Clubs: " + String.join(", ", selectedCoCurricularClubs));
-                    } else {
-                        JOptionPane.showMessageDialog(null, "Please select at least one Academic Subject and one Co-Curricular Club.");
-                    }
+                    JOptionPane.showMessageDialog(null, "Registration successful for user: " + user);
                 } else {
                     JOptionPane.showMessageDialog(null, "Passwords do not match");
                 }
             }
         });
 
+        // Handle back button action
         backButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -206,18 +187,46 @@ public class GUI {
         JPanel dashboardPanel = new JPanel();
         dashboardPanel.setLayout(new BorderLayout());
 
+        // Create a welcome label
         JLabel welcomeLabel = new JLabel("Welcome, " + username + "!", SwingConstants.CENTER);
         welcomeLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        welcomeLabel.setForeground(new Color(0, 51, 102));
         dashboardPanel.add(welcomeLabel, BorderLayout.NORTH);
 
-        JTextArea dashboardContent = new JTextArea(
-            "This is your dashboard. \nHere you can access your academic subjects, clubs, and other features."
-        );
-        dashboardContent.setFont(new Font("Arial", Font.PLAIN, 16));
-        dashboardContent.setEditable(false);
-        dashboardPanel.add(new JScrollPane(dashboardContent), BorderLayout.CENTER);
+        // Create TabbedPane for different sections
+        JTabbedPane tabbedPane = new JTabbedPane();
 
+        // Academic Subjects Tab
+        JPanel academicSubjectsPanel = new JPanel();
+        academicSubjectsPanel.setLayout(new GridLayout(academicSubjects.size(), 1));
+        ButtonGroup academicButtonGroup = new ButtonGroup();
+        for (String subject : academicSubjects) {
+            JRadioButton subjectButton = new JRadioButton(subject);
+            academicButtonGroup.add(subjectButton);
+            academicSubjectsPanel.add(subjectButton);
+        }
+        tabbedPane.addTab("Academic Subjects", new JScrollPane(academicSubjectsPanel));
+
+        // Co-Curricular Clubs Tab
+        JPanel coCurricularPanel = new JPanel();
+        coCurricularPanel.setLayout(new GridLayout(coCurricularClubs.size(), 1));
+        ButtonGroup coCurricularButtonGroup = new ButtonGroup();
+        for (String club : coCurricularClubs) {
+            JRadioButton clubButton = new JRadioButton(club);
+            coCurricularButtonGroup.add(clubButton);
+            coCurricularPanel.add(clubButton);
+        }
+        tabbedPane.addTab("Co-Curricular Clubs", new JScrollPane(coCurricularPanel));
+
+        // Add TabbedPane to the main dashboard
+        dashboardPanel.add(tabbedPane, BorderLayout.CENTER);
+
+        // Create a logout button
         JButton logoutButton = new JButton("Logout");
+        logoutButton.setFont(new Font("Arial", Font.BOLD, 14));
+        logoutButton.setForeground(Color.WHITE);
+        logoutButton.setBackground(new Color(0, 51, 102));
+        logoutButton.setPreferredSize(new Dimension(150, 40));
         logoutButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -233,12 +242,17 @@ public class GUI {
             }
         });
 
-        dashboardPanel.add(logoutButton, BorderLayout.SOUTH);
+        // Add the logout button at the bottom of the dashboard
+        JPanel logoutPanel = new JPanel();
+        logoutPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
+        logoutPanel.add(logoutButton);
+        dashboardPanel.add(logoutPanel, BorderLayout.SOUTH);
 
         dashboardFrame.add(dashboardPanel);
         dashboardFrame.setVisible(true);
     }
 
+    // Load academic subjects from file
     private static void loadAcademicSubjects() {
         try (BufferedReader r = new BufferedReader(new FileReader("data/academicSubjects.txt"))) {
             String line;
@@ -250,6 +264,7 @@ public class GUI {
         }
     }
 
+    // Load co-curricular clubs from file
     private static void loadCoCurricularClubs() {
         try (BufferedReader r = new BufferedReader(new FileReader("data/ClubSocieties.txt"))) {
             String line;
