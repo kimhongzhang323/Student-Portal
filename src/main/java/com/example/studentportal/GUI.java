@@ -9,9 +9,11 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class GUI {
-    private static List<String> academicSubjects = new ArrayList<>();
+    private static List<Subject> academicSubjects = new ArrayList<>();
     private static List<String> coCurricularClubs = new ArrayList<>();
 
     public static void main(String[] args) {
@@ -200,8 +202,8 @@ public class GUI {
         JPanel academicSubjectsPanel = new JPanel();
         academicSubjectsPanel.setLayout(new GridLayout(academicSubjects.size(), 1));
         ButtonGroup academicButtonGroup = new ButtonGroup();
-        for (String subject : academicSubjects) {
-            JRadioButton subjectButton = new JRadioButton(subject);
+        for (Subject subject : academicSubjects) {
+            JRadioButton subjectButton = new JRadioButton(subject.getSubjectName() + " (" + subject.getSubjectCode() + ")");
             academicButtonGroup.add(subjectButton);
             academicSubjectsPanel.add(subjectButton);
         }
@@ -257,8 +259,13 @@ public class GUI {
         try (BufferedReader r = new BufferedReader(new FileReader("data/academicSubjects.txt"))) {
             String line;
             while ((line = r.readLine()) != null) {
-                academicSubjects.add(line);
+                String[] parts = line.split(",");
+                String subjectCode = parts[0];
+                String subjectName = parts[1];
+                academicSubjects.add(new Subject(subjectCode, subjectName));
             }
+            // Sort the subjects by subject name
+            Collections.sort(academicSubjects, Comparator.comparing(Subject::getSubjectName));
         } catch (IOException e) {
             System.out.println("Error reading academic subjects file");
         }
@@ -273,6 +280,25 @@ public class GUI {
             }
         } catch (IOException e) {
             System.out.println("Error reading co-curricular clubs file");
+        }
+    }
+
+    // Subject class to hold subject details
+    static class Subject {
+        private String subjectCode;
+        private String subjectName;
+
+        public Subject(String subjectCode, String subjectName) {
+            this.subjectCode = subjectCode;
+            this.subjectName = subjectName;
+        }
+
+        public String getSubjectCode() {
+            return subjectCode;
+        }
+
+        public String getSubjectName() {
+            return subjectName;
         }
     }
 }
