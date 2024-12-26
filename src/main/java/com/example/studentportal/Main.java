@@ -5,6 +5,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
+import java.util.*;
 
 public class Main {
     private static JFrame mainFrame;
@@ -189,12 +190,27 @@ public class Main {
         // Academic Subjects Tab
         JPanel academicSubjectsPanel = new JPanel();
         academicSubjectsPanel.setLayout(new GridLayout(5, 1));  // Adjust based on the number of subjects you have
-        for (int i = 1; i <= 5; i++) {  // Hardcoded for example, replace with actual data
-            academicSubjectsPanel.add(new JLabel("Subject " + i));
+
+        // Get the enrolled subjects for the student
+        String enrolledSubjects = getEnrolledSubjects(username);
+
+        // Display the enrolled subjects
+        if (enrolledSubjects != null && !enrolledSubjects.isEmpty()) {
+            String[] subjectCodes = enrolledSubjects.split(",");
+            for (String subjectCode : subjectCodes) {
+                String subjectName = getSubjectName(subjectCode.trim());
+                if (subjectName != null) {
+                    academicSubjectsPanel.add(new JLabel(subjectName));
+                } else {
+                    academicSubjectsPanel.add(new JLabel("Unknown Subject Code: " + subjectCode));
+                }
+            }
+        } else {
+            academicSubjectsPanel.add(new JLabel("No subjects enrolled"));
         }
         tabbedPane.addTab("Academic Subjects", new JScrollPane(academicSubjectsPanel));
 
-        // Co-Curricular Clubs Tab
+        // Co-Curricular Clubs Tab (Leave empty or add content as needed)
         JPanel coCurricularPanel = new JPanel();
         coCurricularPanel.setLayout(new GridLayout(5, 1));  // Adjust based on the number of clubs
         for (int i = 1; i <= 5; i++) {  // Hardcoded for example, replace with actual data
@@ -255,31 +271,20 @@ public class Main {
                     continue;
                 }
     
-                // Debug: Print the current line
-                System.out.println("Reading line: " + line);
-    
                 // Check for username line (ends with "@student.fop")
                 if (line.endsWith("@student.fop")) {
                     currentUsername = line;  // Store the full username (with domain)
-                    System.out.println("Found username: " + currentUsername);  // Debug
                 }
     
                 // Check for password line (starts with 'pw-')
                 if (line.startsWith("pw-")) {
                     currentPassword = line.split("pw-")[1].trim();  // Extract the password after 'pw-'
-                    System.out.println("Found password: " + currentPassword);  // Debug
                 }
     
                 // If both username and password are found, compare them
                 if (currentUsername != null && currentPassword != null) {
-                    // Debug: Show the credentials being compared
-                    System.out.println("Comparing input: ");
-                    System.out.println("Username: " + username + " with " + currentUsername);
-                    System.out.println("Password: " + password + " with " + currentPassword);
-    
                     // Check if the input username and password match the current ones
                     if (username.trim().equals(currentUsername.trim()) && password.trim().equals(currentPassword.trim())) {
-                        System.out.println("Credentials match. Login successful!");  // Debug
                         return true;  // Valid credentials
                     }
     
@@ -292,8 +297,64 @@ public class Main {
             e.printStackTrace();  // Handle any IO exceptions (e.g., file not found)
         }
     
-        System.out.println("Invalid credentials. Please check your username and password.");  // Debug
         return false;  // Invalid credentials if we reach here
     }
-     
+
+    private static String getEnrolledSubjects(String username) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("C://Users//kimho//OneDrive//Documents//STUDY//UM//Y1S1//UM-WIX1002-main//Student-Portal//data//UserData.txt"))) {
+            String line;
+            boolean usernameFound = false;
+            String enrolledSubjects = null;
+    
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();  // Trim to remove leading/trailing spaces
+                if (line.isEmpty()) {
+                    continue;
+                }
+    
+                System.out.println("Reading line: " + line); // Debug print
+    
+                // Check for username line (ends with "@student.fop")
+                if (line.endsWith("@student.fop") && line.contains(username)) {
+                    usernameFound = true;  // Username match found
+                    System.out.println("Found username: " + line); // Debug print
+                }
+    
+                // If we found the username, try to read the next line for subjects
+                if (usernameFound) {
+                    // The line containing subject codes (numbers) directly without 'Subjects:'
+                    if (line.matches("[0-9,]+")) {  // If the line contains only numbers and commas
+                        enrolledSubjects = line.trim();
+                        System.out.println("Enrolled Subjects: " + enrolledSubjects); // Debug print
+                        break;
+                    }
+                }
+            }
+    
+            return enrolledSubjects;
+        } catch (IOException e) {
+            e.printStackTrace();  // Handle file reading errors
+        }
+    
+        return null;  // If no enrolled subjects found
+    }
+    
+    
+
+    // Helper method to get the subject name based on subject code from AcademicSubjects.txt
+    private static String getSubjectName(String subjectCode) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("C://Users//kimho//OneDrive//Documents//STUDY//UM//Y1S1//UM-WIX1002-main//Student-Portal//data//AcademicSubjects.txt"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] subjectData = line.split(",");
+                if (subjectData.length == 2 && subjectData[0].trim().equals(subjectCode)) {
+                    return subjectData[1].trim();  // Return the subject name
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();  // Handle file reading errors
+        }
+
+        return null;  // If subject code is not found, return null
+    }
 }
