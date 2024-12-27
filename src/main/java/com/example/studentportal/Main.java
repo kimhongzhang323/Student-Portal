@@ -1,11 +1,13 @@
 package com.example.studentportal;
 
 import javax.swing.*;
+import com.example.studentportal.CoCurriculum.Activity;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
 import java.util.*;
+import java.util.List;
 
 public class Main {
     private static JFrame mainFrame;
@@ -189,7 +191,7 @@ public class Main {
 
         // Academic Subjects Tab
         JPanel academicSubjectsPanel = new JPanel();
-        academicSubjectsPanel.setLayout(new GridLayout(5, 1));  // Adjust based on the number of subjects you have
+        academicSubjectsPanel.setLayout(new GridLayout(0, 1));  // Adjust based on the number of subjects
 
         // Get the enrolled subjects for the student
         String enrolledSubjects = getEnrolledSubjects(username);
@@ -200,22 +202,42 @@ public class Main {
             for (String subjectCode : subjectCodes) {
                 String subjectName = getSubjectName(subjectCode.trim());
                 if (subjectName != null) {
-                    academicSubjectsPanel.add(new JLabel(subjectName));
+                    academicSubjectsPanel.add(createStyledLabel(subjectName));
                 } else {
-                    academicSubjectsPanel.add(new JLabel("Unknown Subject Code: " + subjectCode));
+                    academicSubjectsPanel.add(createStyledLabel("Unknown Subject Code: " + subjectCode));
                 }
             }
         } else {
-            academicSubjectsPanel.add(new JLabel("No subjects enrolled"));
+            academicSubjectsPanel.add(createStyledLabel("No subjects enrolled"));
         }
         tabbedPane.addTab("Academic Subjects", new JScrollPane(academicSubjectsPanel));
 
-        // Co-Curricular Clubs Tab (Leave empty or add content as needed)
+        // Co-Curricular Clubs Tab
         JPanel coCurricularPanel = new JPanel();
-        coCurricularPanel.setLayout(new GridLayout(5, 1));  // Adjust based on the number of clubs
-        for (int i = 1; i <= 5; i++) {  // Hardcoded for example, replace with actual data
-            coCurricularPanel.add(new JLabel("Club " + i));
+        coCurricularPanel.setLayout(new GridLayout(0, 1));  // Adjust based on the number of clubs
+        
+        // Retrieve Co-curricular Data (Clubs and Activities) for the logged-in student
+        Map<String, String> studentClubs = getStudentClubs(username);  // Retrieve student's clubs
+        Map<String, List<String>> studentPositions = getStudentPositions(username);  // Retrieve student's positions in clubs
+        List<Activity> activities = getStudentActivities(username);  // Retrieve student's activities
+
+        // Display the co-curricular clubs the student is involved in
+        if (!studentClubs.isEmpty()) {
+            for (String clubCode : studentClubs.keySet()) {
+                String clubName = studentClubs.get(clubCode);
+                String position = String.valueOf(studentPositions.get(clubCode));
+                String activityDetails = getActivityDetails(activities, clubCode);
+
+                // Add the club information to the co-curricular panel
+                coCurricularPanel.add(createStyledLabel("Club: " + clubName));
+                coCurricularPanel.add(createStyledLabel("Position: " + position));
+                coCurricularPanel.add(createStyledLabel("Activities: " + activityDetails));
+                coCurricularPanel.add(new JSeparator());
+            }
+        } else {
+            coCurricularPanel.add(createStyledLabel("No co-curricular clubs found for this student."));
         }
+
         tabbedPane.addTab("Co-Curricular Clubs", new JScrollPane(coCurricularPanel));
 
         // Add TabbedPane to the main dashboard
@@ -252,6 +274,103 @@ public class Main {
         dashboardFrame.setVisible(true);
     }
 
+    // Helper method to create a styled label
+    private static JLabel createStyledLabel(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(new Font("Arial", Font.PLAIN, 16));
+        label.setForeground(new Color(0, 51, 102));
+        return label;
+    }
+
+    // Retrieve clubs the student is part of
+    private static Map<String, String> getStudentClubs(String studentMatricNumber) {
+        Map<String, String> studentClubs = new HashMap<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader("data/ClubSocieties.txt"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                String clubCode = parts[0].trim();
+                String clubName = parts[1].trim();
+                if (isClubJoinedByStudent(studentMatricNumber, clubCode)) {
+                    studentClubs.put(clubCode, clubName);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return studentClubs;
+    }
+
+    // Simulate checking if a student has joined a club by reading it from a database or file
+    private static boolean isClubJoinedByStudent(String studentMatricNumber, String clubCode) {
+        // In real-world, we would look up the student in a database or file to see if they joined this club
+        return true; // Simulate that the student has joined all clubs in this case
+    }
+
+    // Retrieve student positions from StudentPositions.txt
+    private static Map<String, List<String>> getStudentPositions(String studentMatricNumber) {
+        Map<String, List<String>> studentPositions = new HashMap<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader("data/StudentPositions.txt"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();  // Clean up leading/trailing spaces
+                if (line.isEmpty()) {
+                    continue;  // Skip empty lines
+                }
+    
+                // Split the line by commas
+                String[] parts = line.split(",");
+                if (parts.length < 2) {
+                    continue;  // Skip malformed lines (less than 2 parts)
+                }
+    
+                String matricNumber = parts[0].trim();  // First part is the student matric number
+                if (matricNumber.equals(studentMatricNumber)) {
+                    // Iterate through the roles for the various organizations
+                    for (int i = 1; i < parts.length; i++) {
+                        String roleAndClub = parts[i].trim();
+                        studentPositions.computeIfAbsent(matricNumber, k -> new ArrayList<>()).add(roleAndClub);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();  // Handle file read errors
+        }
+    
+        return studentPositions;
+    }
+
+    // Retrieve student activities from ActivitiesLog.txt
+    private static List<Activity> getStudentActivities(String studentMatricNumber) {
+        List<Activity> activities = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader("data/ActivitiesLog.txt"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                String matricNumber = parts[0].trim();
+                if (matricNumber.equals(studentMatricNumber)) {
+                    String activity = parts[1].trim();
+                    String clubCode = parts[2].trim();
+                    activities.add(new Activity(activity, clubCode, "default")); // Replace "default" with the appropriate third argument
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return activities;
+    }
+
+    // Helper method to get activity details for the given club
+    private static String getActivityDetails(List<Activity> activities, String clubCode) {
+        StringBuilder activityDetails = new StringBuilder();
+        for (Activity activity : activities) {
+            if (activity.getClubCode().equals(clubCode)) {
+                activityDetails.append(activity.getActivityLevel()).append(" | ");
+            }
+        }
+        return activityDetails.length() > 0 ? activityDetails.substring(0, activityDetails.length() - 3) : "No activities recorded";
+    }
+    
     private static boolean validateCredentials(String username, String password) {
         // Specify the path to your user data file (adjust path if needed)
         String filePath = "C://Users//kimho//OneDrive//Documents//STUDY//UM//Y1S1//UM-WIX1002-main//Student-Portal//data//UserData.txt";
@@ -357,4 +476,6 @@ public class Main {
 
         return null;  // If subject code is not found, return null
     }
+
+
 }

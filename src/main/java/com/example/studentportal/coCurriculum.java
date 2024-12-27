@@ -1,189 +1,200 @@
 package com.example.studentportal;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.*;
+import java.util.*;
 
-public class coCurriculum {
+public class CoCurriculum {
+    public static void main(String[] args) {
+        String studentMatricNumber = "s100201"; // Example student
+        Map<String, String> studentClubs = getStudentClubs(studentMatricNumber); // Get clubs for the student
+        Map<String, Integer> studentPositions = getStudentPositions(studentMatricNumber); // Get student positions
+        List<Activity> activities = getStudentActivities(studentMatricNumber); // Get student's activities
 
-    static int totalMark = 0;
-
-    // Method to fetch user details
-    public static void fetchUser() {
-        try (BufferedReader r = new BufferedReader(new FileReader("user.txt"))) {
-            String line;
-            while ((line = r.readLine()) != null) {
-                String email = line;
-                String matricNumber = r.readLine();
-                String password = r.readLine();
-                String academicSubjects = r.readLine();
-                String coCurricularClubs = r.readLine();
-
-                if (email != null && matricNumber != null && password != null && academicSubjects != null && coCurricularClubs != null) {
-
-                } else {
-                    System.out.println("Invalid user entry: " + line);
-                }
-            }
-        } catch (IOException e) {
-            System.out.println("Error reading user file");
+        // Calculate marks for each club
+        Map<String, Double> clubMarks = new HashMap<>();
+        for (String clubCode : studentClubs.keySet()) {
+            double marks = calculateClubMarks(clubCode, studentPositions.get(clubCode), activities);
+            clubMarks.put(clubCode, marks);
         }
+
+        // Print transcript for the student
+        printTranscript(studentMatricNumber, clubMarks);
     }
 
-    // Method to fetch co-curricular clubs and display clubs
-    public static void GetUserCocurriculum() {
-        Map<String, String> clubMap = new HashMap<>();
-        try (BufferedReader r = new BufferedReader(new FileReader("coCurricularClubs.txt"))) {
+    // Get the clubs the student is involved in, from the ClubSocieties.txt
+    private static Map<String, String> getStudentClubs(String studentMatricNumber) {
+        Map<String, String> studentClubs = new HashMap<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader("ClubSocieties.txt"))) {
             String line;
-            while ((line = r.readLine()) != null) {
+            while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",");
-                if (parts.length == 2) {
-                    clubMap.put(parts[0], parts[1]);
+                String clubCode = parts[0].trim();
+                String clubName = parts[1].trim();
+                if (isClubJoinedByStudent(studentMatricNumber, clubCode)) {
+                    studentClubs.put(clubCode, clubName);
                 }
             }
         } catch (IOException e) {
-            System.out.println("Error reading co-curricular clubs file");
+            e.printStackTrace();
         }
-
-        try (BufferedReader r = new BufferedReader(new FileReader("user.txt"))) {
-            String line;
-            while ((line = r.readLine()) != null) {
-                String email = line;
-                String matricNumber = r.readLine();
-                String password = r.readLine();
-                String academicSubjects = r.readLine();
-                String coCurricularClubs = r.readLine();
-
-                if (email != null && matricNumber != null && password != null && academicSubjects != null && coCurricularClubs != null) {
-                    String[] clubCodes = coCurricularClubs.split(",");
-                    StringBuilder transcript = new StringBuilder();
-                    transcript.append("Your Cocurricular Clubs:\n");
-                    transcript.append("============================================================================\n");
-                    for (String code : clubCodes) {
-                        String clubName = clubMap.get(code);
-                        if (clubName != null) {
-                            if (code.startsWith("P")) {
-                                transcript.append("Societies: ").append(code).append(" - ").append(clubName).append("\n");
-                            } else if (code.startsWith("B")) {
-                                transcript.append("Uniform Body: ").append(code).append(" - ").append(clubName).append("\n");
-                            } else if (code.startsWith("S")) {
-                                transcript.append("Sports Club: ").append(code).append(" - ").append(clubName).append("\n");
-                            }
-                        } else {
-                            System.out.println("Club code " + code + " not found");
-                        }
-                    }
-                    transcript.append("============================================================================\n");
-                    System.out.println(transcript.toString());
-                } else {
-                    System.out.println("Invalid user entry: " + line);
-                }
-            }
-        } catch (IOException e) {
-            System.out.println("Error reading user file");
-        }
+        return studentClubs;
     }
 
-    // Method to return position mark
-    public static int positionMark(String position) {
-        int mark = 0;
+    // Check if the student is part of this club
+    private static boolean isClubJoinedByStudent(String studentMatricNumber, String clubCode) {
+        // Simulating that the student has joined these clubs
+        return true; // Replace with real check from user data
+    }
+
+    // Get student positions from StudentPositions.txt
+    private static Map<String, Integer> getStudentPositions(String studentMatricNumber) {
+        Map<String, Integer> studentPositions = new HashMap<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader("StudentPositions.txt"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                String matricNumber = parts[0].trim();
+                if (matricNumber.equals(studentMatricNumber)) {
+                    studentPositions.put("P82", getPositionMarks(parts[1].trim())); // Position for P82
+                    studentPositions.put("B07", getPositionMarks(parts[2].trim())); // Position for B07
+                    studentPositions.put("S01", getPositionMarks(parts[3].trim())); // Position for S01
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return studentPositions;
+    }
+
+    // Convert position to marks
+    private static int getPositionMarks(String position) {
         switch (position) {
-            case "President":
-                mark = 10;
-                break;
-            case "Vice President":
-                mark = 8;
-                break;
-            case "Secretary":
-                mark = 7;
-                break;
-            case "Vice Secretary":
-                mark = 6;
-                break;
-            case "Active Member":
-                mark = 6;
-                break;
-            default:
-                mark = 0;
-                break;
+            case "President": return 10;
+            case "Vice President": return 9;
+            case "Secretary": return 9;
+            case "Treasurer": return 9;
+            case "Active Member": return 6;
+            case "Committee": return 7;
+            default: return 0; // Invalid or no position
         }
-        return mark;
     }
 
-    // Method to return achievement level mark
-    public static int AchievementLevelMark(String achievementLevel) {
-        int mark = 0;
-        switch (achievementLevel) {
-            case "Gold":
-                mark = 20;
-                break;
-            case "Silver":
-                mark = 19;
-                break;
-            case "Bronze":
-                mark = 18;
-                break;
-            case "Participation":
-                mark = 0;
-                break;
-            default:
-                mark = 0;
-                break;
-        }
-        return mark;
-    }
-
-    // Function to return activities participated mark
-    public static int activitiesParticipatedMark(String levelofActivities) {
-        int mark = 0;
-        switch (levelofActivities) {
-            case "International":
-                mark = 20;
-                break;
-            case "National":
-                mark = 15;
-                break;
-            case "State":
-                mark = 12;
-                break;
-            case "School":
-                mark = 10;
-                break;
-            default:
-                mark = 0;
-                break;
-        }
-        return mark;
-    }
-
-
-    // Function to read activities log from file
-    public static void readActivitiesLog() {
-        try (BufferedReader r = new BufferedReader(new FileReader("activitiesLog.txt"))) {
+    // Get student's activities from ActivitiesLog.txt
+    private static List<Activity> getStudentActivities(String studentMatricNumber) {
+        List<Activity> activities = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader("ActivitiesLog.txt"))) {
             String line;
-            while ((line = r.readLine()) != null) { 
+            while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",");
-                if (parts.length == 5) {
-                    String studentId = parts[0];
-                    String activityCode = parts[1];
-                    String activityName = parts[2];
-                    String levelOfActivities = parts[3];
-                    String achievementLevel = parts[4];
-                    int mark = positionMark(activityCode) + activitiesParticipatedMark(levelOfActivities) + AchievementLevelMark(achievementLevel);
-                    totalMark += mark;
-                } else {
-                    System.out.println("Invalid log entry: " + line);
+                String matricNumber = parts[0].trim();
+                if (matricNumber.equals(studentMatricNumber)) {
+                    String clubCode = parts[1].trim();
+                    String activityLevel = parts[3].trim();
+                    String achievementLevel = parts[4].trim();
+                    activities.add(new Activity(clubCode, activityLevel, achievementLevel));
                 }
             }
         } catch (IOException e) {
-            System.out.println("Error reading activities log");
+            e.printStackTrace();
+        }
+        return activities;
+    }
+
+    // Calculate marks for a specific club
+    private static double calculateClubMarks(String clubCode, int positionMarks, List<Activity> activities) {
+        // Default attendance marks
+        double totalMarks = 50;
+
+        // Get the activity for this club
+        Activity activity = activities.stream()
+                .filter(a -> a.getClubCode().equals(clubCode))
+                .findFirst()
+                .orElse(null);
+
+        // Add position marks
+        totalMarks += positionMarks;
+
+        if (activity != null) {
+            // Add activity level marks
+            totalMarks += getActivityLevelMarks(activity.getActivityLevel());
+
+            // Add achievement marks
+            totalMarks += getAchievementLevelMarks(activity.getAchievementLevel());
+        }
+
+        return totalMarks;
+    }
+
+    // Convert activity level to marks
+    private static int getActivityLevelMarks(String level) {
+        switch (level) {
+            case "International": return 20;
+            case "National": return 15;
+            case "State": return 12;
+            case "School": return 10;
+            default: return 0; // Invalid or no activity
         }
     }
 
+    // Convert achievement level to marks
+    private static int getAchievementLevelMarks(String achievement) {
+        switch (achievement) {
+            case "Gold": return 20;
+            case "Silver": return 19;
+            case "Bronze": return 18;
+            default: return 0; // Participation or no achievement
+        }
+    }
 
-    
+    // Print the transcript for the student
+    private static void printTranscript(String studentMatricNumber, Map<String, Double> clubMarks) {
+        System.out.println("Co-curriculum Transcript for " + studentMatricNumber);
+        System.out.println("============================================================================");
+        
+        List<Map.Entry<String, Double>> clubMarksList = new ArrayList<>(clubMarks.entrySet());
+        clubMarksList.sort(Map.Entry.comparingByValue(Comparator.reverseOrder())); // Sort by marks, descending
 
-    
+        for (Map.Entry<String, Double> entry : clubMarksList) {
+            String clubCode = entry.getKey();
+            double marks = entry.getValue();
+            System.out.println("[" + clubCode + "] TOTAL: " + marks + "/100 marks");
+        }
+
+        // Calculate final marks (average of top 2 clubs)
+        double finalMarks = 0;
+        int count = 0;
+        for (int i = 0; i < 2 && i < clubMarksList.size(); i++) {
+            finalMarks += clubMarksList.get(i).getValue();
+            count++;
+        }
+        finalMarks /= count;
+        
+        System.out.println("============================================================================");
+        System.out.println("FINAL MARKS: " + finalMarks + " marks");
+    }
+
+    // Activity class to hold activity information
+    static class Activity {
+        private String clubCode;
+        private String activityLevel;
+        private String achievementLevel;
+
+        public Activity(String clubCode, String activityLevel, String achievementLevel) {
+            this.clubCode = clubCode;
+            this.activityLevel = activityLevel;
+            this.achievementLevel = achievementLevel;
+        }
+
+        public String getClubCode() {
+            return clubCode;
+        }
+
+        public String getActivityLevel() {
+            return activityLevel;
+        }
+
+        public String getAchievementLevel() {
+            return achievementLevel;
+        }
+    }
 }
