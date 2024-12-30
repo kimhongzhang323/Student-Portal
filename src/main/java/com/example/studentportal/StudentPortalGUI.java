@@ -2,7 +2,13 @@ package com.example.studentportal;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
-import java.awt.GridLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.Connection;
@@ -35,7 +41,6 @@ public class StudentPortalGUI {
     private final JButton generateTranscriptButton;
     private final JTextArea resultArea;
     private final JPanel userPanel;
-
     private final ClubsAction clubsAction;
 
     public StudentPortalGUI() {
@@ -44,34 +49,71 @@ public class StudentPortalGUI {
         panel.setLayout(new CardLayout());
 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(600, 400);
+        frame.setSize(800, 500);
+        frame.setLocationRelativeTo(null); // Center the window
 
-        // Create login panel
-        JPanel loginPanel = new JPanel(new GridLayout(3, 2));
-        loginPanel.add(new JLabel("Matric Number:"));
-        matricNumberField = new JTextField();
-        loginPanel.add(matricNumberField);
-        loginPanel.add(new JLabel("Password:"));
-        passwordField = new JPasswordField();
-        loginPanel.add(passwordField);
+        // Create login panel with improved styling
+        JPanel loginPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        loginPanel.setBackground(new Color(238, 238, 238));
+
+        JLabel matricLabel = new JLabel("Matric Number:");
+        matricLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.insets = new Insets(10, 10, 10, 10);
+        loginPanel.add(matricLabel, gbc);
+
+        matricNumberField = new JTextField(20);
+        matricNumberField.setFont(new Font("Arial", Font.PLAIN, 14));
+        gbc.gridx = 1;
+        loginPanel.add(matricNumberField, gbc);
+
+        JLabel passwordLabel = new JLabel("Password:");
+        passwordLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        loginPanel.add(passwordLabel, gbc);
+
+        passwordField = new JPasswordField(20);
+        passwordField.setFont(new Font("Arial", Font.PLAIN, 14));
+        gbc.gridx = 1;
+        loginPanel.add(passwordField, gbc);
 
         loginButton = new JButton("Login");
-        loginPanel.add(loginButton);
+        loginButton.setFont(new Font("Arial", Font.BOLD, 14));
+        loginButton.setBackground(new Color(0, 123, 255));
+        loginButton.setForeground(Color.WHITE);
+        loginButton.setPreferredSize(new Dimension(120, 40));
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        loginButton.setFocusable(false);
+        loginPanel.add(loginButton, gbc);
+
         registerButton = new JButton("Register");
-        loginPanel.add(registerButton);
+        registerButton.setFont(new Font("Arial", Font.BOLD, 14));
+        registerButton.setBackground(new Color(0, 123, 255));
+        registerButton.setForeground(Color.WHITE);
+        registerButton.setPreferredSize(new Dimension(120, 40));
+        gbc.gridx = 1;
+        loginPanel.add(registerButton, gbc);
 
-        // Create result area
-        resultArea = new JTextArea(10, 40);
+        // Create result area with scroll pane
+        resultArea = new JTextArea(12, 40);
+        resultArea.setFont(new Font("Arial", Font.PLAIN, 14));
         resultArea.setEditable(false);
+        resultArea.setLineWrap(true);
+        resultArea.setWrapStyleWord(true);
+        JScrollPane resultScrollPane = new JScrollPane(resultArea);
+        resultScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 
-        // Create menu buttons for logged-in users
+        // Menu buttons for logged-in users
         subjectsButton = new JButton("View Enrolled Subjects");
         clubsButton = new JButton("View Clubs");
         positionsButton = new JButton("View Positions");
         activitiesButton = new JButton("View Activities");
         logoutButton = new JButton("Logout");
 
-        // Button for generating transcript
         generateTranscriptButton = new JButton("Generate Transcript");
 
         // Initialize ClubsAction and set its required fields
@@ -90,21 +132,25 @@ public class StudentPortalGUI {
         logoutButton.addActionListener(new LogoutAction());
         generateTranscriptButton.addActionListener(new GenerateTranscriptAction());
 
-        // Set up main panel and add components
-        panel.add(loginPanel, "Login");
-
-        userPanel = new JPanel(new BorderLayout());
-        userPanel.add(new JScrollPane(resultArea), BorderLayout.CENTER);
+        // User panel with result area and buttons
+        userPanel = new JPanel();
+        userPanel.setLayout(new BorderLayout());
+        userPanel.setBackground(new Color(240, 240, 240));
 
         JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 15, 10));
+        buttonPanel.setBackground(new Color(240, 240, 240));
         buttonPanel.add(subjectsButton);
         buttonPanel.add(clubsButton);
         buttonPanel.add(positionsButton);
         buttonPanel.add(activitiesButton);
         buttonPanel.add(generateTranscriptButton);
         buttonPanel.add(logoutButton);
+
+        userPanel.add(resultScrollPane, BorderLayout.CENTER);
         userPanel.add(buttonPanel, BorderLayout.SOUTH);
 
+        panel.add(loginPanel, "Login");
         panel.add(userPanel, "User");
 
         frame.add(panel);
@@ -177,7 +223,7 @@ public class StudentPortalGUI {
         public void actionPerformed(ActionEvent e) {
             String matricNumber = matricNumberField.getText();
             try {
-                Map<String, java.util.List<String>> positions = StudentPortalGUI.this.getStudentPositions(matricNumber);
+                Map<String, java.util.List<String>> positions = getStudentPositions(matricNumber);
                 StringBuilder result = new StringBuilder("Positions:\n");
                 for (String club : positions.keySet()) {
                     result.append(club).append(": ").append(String.join(", ", positions.get(club))).append("\n");
@@ -233,7 +279,7 @@ public class StudentPortalGUI {
         layout.show(panel, "User");
     }
 
-    private boolean validateCredentials(String matricNumber, String password) throws SQLException, Exception {
+    private boolean validateCredentials(String matricNumber, String password) throws Exception {
         String query = "SELECT * FROM users WHERE matric_number = ? AND password = ?";
         try (Connection conn = DBHelper.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -256,7 +302,7 @@ public class StudentPortalGUI {
         }
     }
 
-    private String getEnrolledSubjects(String matricNumber) throws SQLException, Exception {
+    private String getEnrolledSubjects(String matricNumber) throws Exception {
         String query = "SELECT s.subject_code, s.subject_name FROM academic_subjects s "
                      + "JOIN users u ON FIND_IN_SET(s.subject_code, u.academic_subjects) > 0 "
                      + "WHERE u.matric_number = ?";
@@ -272,7 +318,7 @@ public class StudentPortalGUI {
                 }
             }
         }
-        return subjects.length() > 0 ? subjects.toString() : "No enrolled subjects found.";
+        return subjects.toString();
     }
 
     private Map<String, String> getStudentClubs(String matricNumber) throws SQLException, Exception {
