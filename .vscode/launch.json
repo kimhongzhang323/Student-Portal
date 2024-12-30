@@ -1,0 +1,26 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "StudentPortalGUI",
+            "request": "launch",
+            "mainClass": "com.example.studentportal.StudentPortalGUI",
+            "projectName": "student_portal"
+        },
+        {
+            "type": "java",
+            "name": "DBHelper",
+            "request": "launch",
+            "mainClass": "com.example.studentportal.DBHelper",
+            "projectName": "student_portal"
+        },
+        {
+            "type": "java",
+            "name": "Launch StudentPortalGUI",
+            "request": "launch",
+            "mainClass": "com.example.studentportal.StudentPortalGUI",
+            "projectName": "Student-Portal"
+        }
+    ]
+}

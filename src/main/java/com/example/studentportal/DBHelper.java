@@ -9,7 +9,7 @@
 
         private static final String DB_URL = "jdbc:mysql://localhost:3306/student_info";
         private static final String USER = "root";
-        private static final String PASS = System.getenv("DB_PASSWORD");        
+        private static final String PASS = "buku3b3B";        
 
         public static Connection getConnection() throws Exception {
             try {
