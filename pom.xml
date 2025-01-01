@@ -4,18 +4,22 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <!-- Parent project details -->
     <groupId>student_portal</groupId>
     <artifactId>student_portal</artifactId>
     <version>1.0.0</version>
+    <packaging>pom</packaging> <!-- Important: set packaging to pom -->
     <name>student_portal</name>
-    <url>http://www.example.com</url> <!-- Change this to your actual project URL or remove it -->
+    <url>http://www.example.com</url> <!-- Replace with your actual project URL -->
 
+    <!-- Project Properties -->
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source> <!-- You can use a more recent version -->
         <maven.compiler.target>1.8</maven.compiler.target> <!-- You can use a more recent version -->
     </properties>
 
+    <!-- Dependencies for the parent project (not required for submodules) -->
     <dependencies>
         <!-- JUnit for testing -->
         <dependency>
@@ -43,8 +47,17 @@
             <artifactId>poi-ooxml</artifactId>
             <version>5.2.3</version>
         </dependency>
+
+        <!-- iText for PDF generation -->
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>2.0.27</version>
+        </dependency>
+
     </dependencies>
 
+    <!-- Build Plugins for the parent project -->
     <build>
         <pluginManagement>
             <plugins>
@@ -87,4 +100,11 @@
             </plugins>
         </pluginManagement>
     </build>
+
+    <!-- Define Modules for the project -->
+    <modules>
+        <module>module-name-1</module> <!-- Replace with your submodule's name -->
+        <module>module-name-2</module> <!-- Add more modules as needed -->
+        <!-- Example: <module>student-portal-web</module> -->
+    </modules>
 </project>
