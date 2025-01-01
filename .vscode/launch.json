@@ -3,6 +3,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CoCurriculumMarksCalculator",
+            "request": "launch",
+            "mainClass": "com.example.studentportal.CoCurriculumMarksCalculator",
+            "projectName": "student_portal"
+        },
+        {
+            "type": "java",
             "name": "StudentPortalGUI",
             "request": "launch",
             "mainClass": "com.example.studentportal.StudentPortalGUI",

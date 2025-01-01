@@ -38,10 +38,8 @@ public class StudentPortalGUI {
     private final JButton loginButton;
     private final JButton registerButton;
     private final JButton subjectsButton, clubsButton, positionsButton, activitiesButton, logoutButton;
-    private final JButton generateTranscriptButton;
     private final JTextArea resultArea;
     private final JPanel userPanel;
-    private final ClubsAction clubsAction;
 
     public StudentPortalGUI() {
         frame = new JFrame("Student Portal");
@@ -114,23 +112,14 @@ public class StudentPortalGUI {
         activitiesButton = new JButton("View Activities");
         logoutButton = new JButton("Logout");
 
-        generateTranscriptButton = new JButton("Generate Transcript");
-
-        // Initialize ClubsAction and set its required fields
-        clubsAction = new ClubsAction();
-        clubsAction.setFrame(frame);
-        clubsAction.setMatricNumberField(matricNumberField);
-        clubsAction.setResultArea(resultArea);
-
         // Add action listeners
         loginButton.addActionListener(new LoginAction());
         registerButton.addActionListener(new RegisterAction());
         subjectsButton.addActionListener(new SubjectsAction());
-        clubsButton.addActionListener(clubsAction);
+        clubsButton.addActionListener(new ClubsAction());
         positionsButton.addActionListener(new PositionsAction());
         activitiesButton.addActionListener(new ActivitiesAction());
         logoutButton.addActionListener(new LogoutAction());
-        generateTranscriptButton.addActionListener(new GenerateTranscriptAction());
 
         // User panel with result area and buttons
         userPanel = new JPanel();
@@ -144,7 +133,6 @@ public class StudentPortalGUI {
         buttonPanel.add(clubsButton);
         buttonPanel.add(positionsButton);
         buttonPanel.add(activitiesButton);
-        buttonPanel.add(generateTranscriptButton);
         buttonPanel.add(logoutButton);
 
         userPanel.add(resultScrollPane, BorderLayout.CENTER);
@@ -218,6 +206,35 @@ public class StudentPortalGUI {
         }
     }
 
+    private class ClubsAction implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String matricNumber = matricNumberField.getText();
+            try {
+                Map<String, String> clubs = getStudentClubs(matricNumber);
+                StringBuilder result = new StringBuilder("Clubs:\n");
+                for (Map.Entry<String, String> entry : clubs.entrySet()) {
+                    result.append(entry.getKey()).append(" - ").append(entry.getValue()).append("\n");
+                }
+                resultArea.setText(result.toString());
+
+                int option = JOptionPane.showConfirmDialog(
+                        frame,
+                        "Would you like to generate a transcript?",
+                        "Generate Transcript",
+                        JOptionPane.YES_NO_OPTION
+                );
+
+                if (option == JOptionPane.YES_OPTION) {
+                    generateTranscript(matricNumber);
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(frame, "An error occurred while fetching clubs.");
+            }
+        }
+    }
+
     private class PositionsAction implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -252,19 +269,6 @@ public class StudentPortalGUI {
             } catch (Exception ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(frame, "An error occurred while fetching activities.");
-            }
-        }
-    }
-
-    private class GenerateTranscriptAction implements ActionListener {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            String matricNumber = matricNumberField.getText();
-            try {
-                clubsAction.generateTranscript(matricNumber);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(frame, "An error occurred while generating the transcript.");
             }
         }
     }
@@ -381,6 +385,18 @@ public class StudentPortalGUI {
         }
         return activities;
     }
+
+    private void generateTranscript(String matricNumber) throws SQLException, Exception {
+        // Create an instance of CoCurriculumMarksCalculator
+        CoCurriculumMarksCalculator calculator = new CoCurriculumMarksCalculator();
+    
+        // Generate the transcript for the given matric number
+        String transcript = calculator.generateTranscript(matricNumber);
+    
+        // Show the generated transcript in a message dialog
+        JOptionPane.showMessageDialog(frame, transcript, "Co-curricular Transcript", JOptionPane.INFORMATION_MESSAGE);
+    }
+    
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(StudentPortalGUI::new);
