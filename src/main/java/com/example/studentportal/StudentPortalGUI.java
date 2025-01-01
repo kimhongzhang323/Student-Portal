@@ -20,7 +20,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -30,11 +32,11 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
-import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+
 
 public class StudentPortalGUI {
     private final JFrame frame;
@@ -353,7 +355,7 @@ public class StudentPortalGUI {
         List<String> subjectsWithCodes = new ArrayList<>();
         List<String> clubsWithCodes = new ArrayList<>();
 
-        String subjectQuery = "SELECT subject_name, subject_code FROM subjects";  // Fetch both subject_name and subject_code
+        String subjectQuery = "SELECT subject_name, subject_code FROM academic_subjects";  // Fetch both subject_name and subject_code
         String clubQuery = "SELECT club_name, club_code FROM clubs";  // Fetch both club_name and club_code
 
         try (Connection conn = DBHelper.getConnection();
@@ -380,10 +382,6 @@ public class StudentPortalGUI {
 
         return new AcademicClubData(subjectsWithCodes, clubsWithCodes);
     }
-
-
-
-
     private class LoginAction implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -402,14 +400,12 @@ public class StudentPortalGUI {
             }
         }
     }
-
     private class RegisterAction implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             showRegisterPanel();
         }
     }
-
     private class LogoutAction implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -429,26 +425,77 @@ public class StudentPortalGUI {
             }
         }
     }
-
     private class ClubsAction implements ActionListener {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            String matricNumber = matricNumberField.getText();
-            try {
-                resultArea.setText(getStudentClubs(matricNumber));
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(frame, "An error occurred while fetching clubs.");
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        String matricNumber = matricNumberField.getText();
+
+        // Validate that matric number is not empty
+        if (matricNumber == null || matricNumber.isEmpty()) {
+            JOptionPane.showMessageDialog(frame, "Matric number cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        try {
+            CoCurriculumMarksCalculator calculator = new CoCurriculumMarksCalculator();
+
+            // Fetch the student's clubs
+            List<CoCurriculumMarksCalculator.StudentClubPosition> clubs = calculator.getStudentClubPositions(matricNumber);
+
+            if (clubs.isEmpty()) {
+                resultArea.setText("No clubs found for matric number: " + matricNumber);
+                return;
             }
+
+            StringBuilder clubsText = new StringBuilder();
+            for (CoCurriculumMarksCalculator.StudentClubPosition club : clubs) {
+                clubsText.append(club.clubCode).append(" - ").append(club.clubName).append("\n");
+            }
+            
+
+            // Display the list of clubs in the result area
+            resultArea.setText(clubsText.toString());
+
+            // Ask the user if they want to generate the full transcript
+            int option = JOptionPane.showConfirmDialog(frame,
+                    "Would you like to generate the full co-curricular transcript?",
+                    "Generate Transcript", JOptionPane.YES_NO_OPTION);
+
+            if (option == JOptionPane.YES_OPTION) {
+                // Generate the transcript
+                String transcript = calculator.generateTranscript(matricNumber);
+
+                // Display the transcript
+                JOptionPane.showMessageDialog(frame, transcript, "Co-curricular Transcript", JOptionPane.INFORMATION_MESSAGE);
+
+                // Ask if the user wants to email the transcript
+            }
+
+        } catch (SQLException sqlEx) {
+            sqlEx.printStackTrace();
+            JOptionPane.showMessageDialog(frame, "Database error: " + sqlEx.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(frame, "An unexpected error occurred: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+}
+
+    
+    
+    
 
     private class PositionsAction implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             String matricNumber = matricNumberField.getText();
             try {
-                resultArea.setText(getStudentPositions(matricNumber));
+                Map<String, List<String>> positions = getStudentPositions(matricNumber);
+                StringBuilder positionsText = new StringBuilder();
+                for (Map.Entry<String, List<String>> entry : positions.entrySet()) {
+                    positionsText.append(entry.getKey()).append(": ").append(String.join(", ", entry.getValue())).append("\n");
+                }
+                resultArea.setText(positionsText.toString());
             } catch (Exception ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(frame, "An error occurred while fetching positions.");
@@ -461,7 +508,15 @@ public class StudentPortalGUI {
         public void actionPerformed(ActionEvent e) {
             String matricNumber = matricNumberField.getText();
             try {
-                resultArea.setText(getStudentActivities(matricNumber));
+                Map<String, List<String>> activities = getStudentActivities(matricNumber);
+                StringBuilder activitiesText = new StringBuilder();
+                for (Map.Entry<String, List<String>> entry : activities.entrySet()) {
+                    activitiesText.append(entry.getKey()).append(":\n");
+                    for (String activity : entry.getValue()) {
+                        activitiesText.append("  - ").append(activity).append("\n");
+                    }
+                }
+                resultArea.setText(activitiesText.toString());
             } catch (Exception ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(frame, "An error occurred while fetching activities.");
@@ -564,68 +619,112 @@ public class StudentPortalGUI {
         }
     }
     
-    
-    
-    
 
-    private String getEnrolledSubjects(String matricNumber) throws SQLException, Exception {
-        String query = "SELECT subject_name FROM subjects WHERE matric_number = ?";
+    private String getEnrolledSubjects(String matricNumber) throws Exception {
+        String query = "SELECT s.subject_code, s.subject_name FROM academic_subjects s "
+                     + "JOIN users u ON FIND_IN_SET(s.subject_code, u.academic_subjects) > 0 "
+                     + "WHERE u.matric_number = ?";
+        List<String[]> subjects = new ArrayList<>();
+    
         try (Connection conn = DBHelper.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, matricNumber);
             try (ResultSet rs = stmt.executeQuery()) {
-                StringBuilder subjects = new StringBuilder("Enrolled Subjects:\n");
                 while (rs.next()) {
-                    subjects.append(rs.getString("subject_name")).append("\n");
+                    // Add subject_code and subject_name as a pair to the list
+                    subjects.add(new String[] { rs.getString("subject_code"), rs.getString("subject_name") });
                 }
-                return subjects.toString();
+            }
+        }
+    
+        // Sort the subjects using bubble sort by subject name
+        bubbleSortByName(subjects);
+    
+        // Convert the sorted list to a formatted string
+        StringBuilder subjectsText = new StringBuilder();
+        for (String[] subject : subjects) {
+            subjectsText.append(subject[0])  // subject_code
+                        .append(" - ").append(subject[1])  // subject_name
+                        .append("\n");
+        }
+    
+        return subjectsText.toString();
+    }
+    
+    private void bubbleSortByName(List<String[]> subjects) {
+        int n = subjects.size();
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = 0; j < n - i - 1; j++) {
+                if (subjects.get(j)[1].compareToIgnoreCase(subjects.get(j + 1)[1]) > 0) {
+                    // Swap subjects[j] and subjects[j + 1]
+                    String[] temp = subjects.get(j);
+                    subjects.set(j, subjects.get(j + 1));
+                    subjects.set(j + 1, temp);
+                }
             }
         }
     }
+    
 
-    private String getStudentClubs(String matricNumber) throws SQLException, Exception {
-        String query = "SELECT club_name FROM clubs WHERE matric_number = ?";
+    private Map<String, String> getStudentClubs(String matricNumber) throws SQLException, Exception {
+        String query = "SELECT c.club_code, c.club_name FROM clubs c "
+                     + "JOIN users u ON FIND_IN_SET(c.club_code, u.cocurricular_clubs) > 0 "
+                     + "WHERE u.matric_number = ?";
+        Map<String, String> studentClubs = new HashMap<>();
         try (Connection conn = DBHelper.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, matricNumber);
             try (ResultSet rs = stmt.executeQuery()) {
-                StringBuilder clubs = new StringBuilder("Clubs:\n");
                 while (rs.next()) {
-                    clubs.append(rs.getString("club_name")).append("\n");
+                    studentClubs.put(rs.getString("club_code"), rs.getString("club_name"));
                 }
-                return clubs.toString();
             }
+        }
+        return studentClubs;
+    }
+
+    private Map<String, java.util.List<String>> getStudentPositions(String matricNumber) throws SQLException, Exception {
+        String query = "SELECT society_position, uniform_body_position, sports_club_position "
+                     + "FROM student_positions WHERE matric_number = ?";
+        Map<String, java.util.List<String>> positions = new HashMap<>();
+        try (Connection conn = DBHelper.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, matricNumber);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    addPositionToMap(positions, "Society", rs.getString("society_position"));
+                    addPositionToMap(positions, "Uniform Body", rs.getString("uniform_body_position"));
+                    addPositionToMap(positions, "Sports Club", rs.getString("sports_club_position"));
+                }
+            }
+        }
+        return positions;
+    }
+
+    private void addPositionToMap(Map<String, java.util.List<String>> map, String key, String value) {
+        if (value != null && !value.isEmpty()) {
+            map.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
         }
     }
 
-    private String getStudentPositions(String matricNumber) throws SQLException, Exception {
-        String query = "SELECT position_name FROM positions WHERE matric_number = ?";
+    private Map<String, java.util.List<String>> getStudentActivities(String matricNumber) throws SQLException, Exception {
+        String query = "SELECT al.club_code, al.activity_name, al.activity_level, al.achievement_level "
+                     + "FROM activities_log al "
+                     + "JOIN users u ON al.matric_number = u.matric_number "
+                     + "WHERE u.matric_number = ?";
+        Map<String, java.util.List<String>> activities = new HashMap<>();
         try (Connection conn = DBHelper.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, matricNumber);
             try (ResultSet rs = stmt.executeQuery()) {
-                StringBuilder positions = new StringBuilder("Positions:\n");
                 while (rs.next()) {
-                    positions.append(rs.getString("position_name")).append("\n");
+                    String activityInfo = String.format("Activity: %s, Level: %s, Achievement: %s",
+                            rs.getString("activity_name"), rs.getString("activity_level"), rs.getString("achievement_level"));
+                    activities.computeIfAbsent(rs.getString("club_code"), k -> new ArrayList<>()).add(activityInfo);
                 }
-                return positions.toString();
             }
         }
-    }
-
-    private String getStudentActivities(String matricNumber) throws SQLException, Exception {
-        String query = "SELECT activity_name FROM activities WHERE matric_number = ?";
-        try (Connection conn = DBHelper.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setString(1, matricNumber);
-            try (ResultSet rs = stmt.executeQuery()) {
-                StringBuilder activities = new StringBuilder("Activities:\n");
-                while (rs.next()) {
-                    activities.append(rs.getString("activity_name")).append("\n");
-                }
-                return activities.toString();
-            }
-        }
+        return activities;
     }
 
     public static void main(String[] args) {

@@ -71,7 +71,7 @@ public class ClubsAction implements ActionListener {
     private JTextArea resultArea;
     private JButton generateTranscriptButton;
     
-    private List<ClubTranscript> clubTranscripts = new ArrayList<>();
+    private final List<ClubTranscript> clubTranscripts = new ArrayList<>();
     
     public void setFrame(JFrame frame) {
         this.frame = frame;
@@ -132,7 +132,6 @@ public class ClubsAction implements ActionListener {
             });
 
         } catch (Exception ex) {
-            ex.printStackTrace();
             JOptionPane.showMessageDialog(frame, "An unexpected error occurred.");
         }
     }
@@ -166,7 +165,6 @@ public class ClubsAction implements ActionListener {
             resultArea.setText(result.toString());
 
         } catch (Exception ex) {
-            ex.printStackTrace();
             JOptionPane.showMessageDialog(frame, "An unexpected error occurred while generating the transcript.");
         }
     }
@@ -207,9 +205,9 @@ public class ClubsAction implements ActionListener {
     }
 
     private static class ClubDetails {
-        private String clubCode;
-        private String clubName;
-        private String category;
+        private final String clubCode;
+        private final String clubName;
+        private final String category;
 
         public ClubDetails(String clubCode, String clubName, String category) {
             this.clubCode = clubCode;
@@ -231,14 +229,14 @@ public class ClubsAction implements ActionListener {
     }
 
     private static class ClubTranscript {
-        private ClubDetails clubDetails;
-        private String selectedActivity;
-        private String activityLevel;
-        private String achievementLevel;
-        private String position;
-        private int totalMarks;
+        private final ClubDetails clubDetails;
+        private final String selectedActivity;
+        private final String activityLevel;
+        private final String achievementLevel;
+        private final String position;
+        private final int totalMarks;
 
-        private ClubsAction clubsAction;
+        private final ClubsAction clubsAction;
 
         public ClubTranscript(ClubsAction clubsAction, ClubDetails clubDetails, String selectedActivity, String activityLevel, String achievementLevel, String position, int totalMarks) {
             this.clubsAction = clubsAction;
@@ -267,10 +265,10 @@ public class ClubsAction implements ActionListener {
         }
     }
 
-    private static class Activity {
-        private String activityName;
-        private String activityLevel;
-        private String achievementLevel;
+    public static class Activity {
+        private final String activityName;
+        private final String activityLevel;
+        private final String achievementLevel;
 
         public Activity(String activityName, String activityLevel, String achievementLevel) {
             this.activityName = activityName;
