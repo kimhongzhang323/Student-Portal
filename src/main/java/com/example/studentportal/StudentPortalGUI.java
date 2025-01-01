@@ -11,20 +11,26 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -41,7 +47,7 @@ public class StudentPortalGUI {
     private final JTextArea resultArea;
     private final JPanel userPanel;
 
-    public StudentPortalGUI() {
+    public StudentPortalGUI() throws Exception {
         frame = new JFrame("Student Portal");
         panel = new JPanel();
         panel.setLayout(new CardLayout());
@@ -142,8 +148,241 @@ public class StudentPortalGUI {
         panel.add(userPanel, "User");
 
         frame.add(panel);
+        createRegisterPanel();
         frame.setVisible(true);
     }
+
+    private List<String> fetchSubjectsFromDatabase() throws SQLException, Exception {
+        List<String> subjects = new ArrayList<>();
+        String query = "SELECT subject_name, subject_code FROM academic_subjects"; // Fetch both subject_name and subject_code
+        try (Connection conn = DBHelper.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            while (rs.next()) {
+                String subject = rs.getString("subject_name") + " (" + rs.getString("subject_code") + ")";
+                subjects.add(subject);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Error fetching subjects from the database.", e);
+        }
+        return subjects;
+    }
+    
+    private List<String> fetchClubsFromDatabase() throws SQLException, Exception {
+        List<String> clubs = new ArrayList<>();
+        String query = "SELECT club_name, club_code FROM clubs"; // Fetch both club_name and club_code
+        try (Connection conn = DBHelper.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            while (rs.next()) {
+                String club = rs.getString("club_name") + " (" + rs.getString("club_code") + ")";
+                clubs.add(club);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Error fetching clubs from the database.", e);
+        }
+        return clubs;
+    }
+    
+    private void createRegisterPanel() throws Exception {
+        JPanel registerPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        registerPanel.setBackground(new Color(238, 238, 238));
+    
+        // Matric Number Label and Field
+        JLabel matricLabel = new JLabel("Matric Number:");
+        matricLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.insets = new Insets(10, 10, 10, 10);
+        registerPanel.add(matricLabel, gbc);
+    
+        JTextField matricNumberField = new JTextField(20);
+        matricNumberField.setFont(new Font("Arial", Font.PLAIN, 14));
+        gbc.gridx = 1;
+        registerPanel.add(matricNumberField, gbc);
+    
+        // Password Label and Field
+        JLabel passwordLabel = new JLabel("Password:");
+        passwordLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        registerPanel.add(passwordLabel, gbc);
+    
+        JPasswordField passwordField = new JPasswordField(20);
+        passwordField.setFont(new Font("Arial", Font.PLAIN, 14));
+        gbc.gridx = 1;
+        registerPanel.add(passwordField, gbc);
+    
+        JTextField emailField = new JTextField(20);
+        emailField.setFont(new Font("Arial", Font.PLAIN, 14));
+        gbc.gridx = 1;
+        registerPanel.add(emailField, gbc);
+    
+        // Academic Subjects (Multiple selection)
+        JLabel subjectsLabel = new JLabel("Select Subjects:");
+        subjectsLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.insets = new Insets(10, 10, 5, 10);
+        registerPanel.add(subjectsLabel, gbc);
+    
+        // Fetch subjects from the database and add them as checkboxes
+        List<String> subjects = fetchSubjectsFromDatabase();
+        JPanel subjectsPanel = new JPanel();
+        subjectsPanel.setLayout(new BoxLayout(subjectsPanel, BoxLayout.Y_AXIS));
+        JCheckBox[] subjectCheckBoxes = new JCheckBox[subjects.size()];
+        for (int i = 0; i < subjects.size(); i++) {
+            subjectCheckBoxes[i] = new JCheckBox(subjects.get(i));
+            subjectsPanel.add(subjectCheckBoxes[i]);
+        }
+    
+        gbc.gridx = 1;
+        gbc.gridy = 4;
+        registerPanel.add(subjectsPanel, gbc);
+    
+        // Clubs (Multiple selection - up to 3)
+        JLabel clubsLabel = new JLabel("Select Clubs (up to 3):");
+        clubsLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        gbc.insets = new Insets(10, 10, 5, 10);
+        registerPanel.add(clubsLabel, gbc);
+    
+        // Fetch clubs from the database and add them as checkboxes
+        List<String> clubs = fetchClubsFromDatabase();
+        JPanel clubsPanel = new JPanel();
+        clubsPanel.setLayout(new BoxLayout(clubsPanel, BoxLayout.Y_AXIS));
+        JCheckBox[] clubCheckBoxes = new JCheckBox[clubs.size()];
+        for (int i = 0; i < clubs.size(); i++) {
+            clubCheckBoxes[i] = new JCheckBox(clubs.get(i));
+            clubsPanel.add(clubCheckBoxes[i]);
+        }
+    
+        gbc.gridx = 1;
+        gbc.gridy = 6;
+        registerPanel.add(clubsPanel, gbc);
+    
+        // Register Button
+        JButton registerButton = new JButton("Register");
+        registerButton.setFont(new Font("Arial", Font.BOLD, 14));
+        registerButton.setBackground(new Color(0, 123, 255));
+        registerButton.setForeground(Color.WHITE);
+        registerButton.setPreferredSize(new Dimension(120, 40));
+        gbc.gridx = 0;
+        gbc.gridy = 7;
+        gbc.gridwidth = 2;
+        registerButton.setFocusable(false);
+        registerPanel.add(registerButton, gbc);
+    
+        // ActionListener for Register Button
+        registerButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String matricNumber = matricNumberField.getText();
+                String password = new String(passwordField.getPassword());
+                String email = matricNumber + "@student.fop"; // Email from matric number
+    
+                if (matricNumber.isEmpty() || password.isEmpty()) {
+                    JOptionPane.showMessageDialog(frame, "Please fill all fields!");
+                    return;
+                }
+    
+                // Get selected subjects
+                StringBuilder selectedSubjects = new StringBuilder();
+                for (JCheckBox checkBox : subjectCheckBoxes) {
+                    if (checkBox.isSelected()) {
+                        selectedSubjects.append(checkBox.getText()).append(", ");
+                    }
+                }
+                if (selectedSubjects.length() > 0) selectedSubjects.setLength(selectedSubjects.length() - 2); // Remove last comma
+    
+                // Get selected clubs (up to 3)
+                StringBuilder selectedClubs = new StringBuilder();
+                int clubCount = 0;
+                for (JCheckBox checkBox : clubCheckBoxes) {
+                    if (checkBox.isSelected() && clubCount < 3) { // Allow up to 3 selections
+                        selectedClubs.append(checkBox.getText()).append(", ");
+                        clubCount++;
+                    }
+                }
+                if (selectedClubs.length() > 0) selectedClubs.setLength(selectedClubs.length() - 2); // Remove last comma
+    
+                try {
+                    // Save to MySQL database
+                    registerUser(matricNumber, password, email, selectedSubjects.toString(), selectedClubs.toString());
+    
+                    // Save to file
+                    saveUserToFile(matricNumber, password, email, selectedSubjects.toString(), selectedClubs.toString());
+    
+                    JOptionPane.showMessageDialog(frame, "Registration successful! Please login.");
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(frame, "An error occurred during registration.");
+                }
+            }
+        });
+    
+        // Add the register panel to the main panel
+        panel.add(registerPanel, "Register");
+    }
+    
+
+    public class AcademicClubData {
+        private List<String> subjectsWithCodes;
+        private List<String> clubsWithCodes;
+
+        public AcademicClubData(List<String> subjectsWithCodes, List<String> clubsWithCodes) {
+            this.subjectsWithCodes = subjectsWithCodes;
+            this.clubsWithCodes = clubsWithCodes;
+        }
+
+        // Getters for the combined data
+        public List<String> getSubjectsWithCodes() {
+            return subjectsWithCodes;
+        }
+
+        public List<String> getClubsWithCodes() {
+            return clubsWithCodes;
+        }
+    }
+
+    public AcademicClubData fetchAcademicAndClubData() throws SQLException, Exception {
+        List<String> subjectsWithCodes = new ArrayList<>();
+        List<String> clubsWithCodes = new ArrayList<>();
+
+        String subjectQuery = "SELECT subject_name, subject_code FROM subjects";  // Fetch both subject_name and subject_code
+        String clubQuery = "SELECT club_name, club_code FROM clubs";  // Fetch both club_name and club_code
+
+        try (Connection conn = DBHelper.getConnection();
+            Statement stmt = conn.createStatement();
+            ResultSet subjectRs = stmt.executeQuery(subjectQuery);
+            ResultSet clubRs = stmt.executeQuery(clubQuery)) {
+
+            // Fetch subject data and combine name with code
+            while (subjectRs.next()) {
+                String subjectWithCode = subjectRs.getString("subject_name") + " (" + subjectRs.getString("subject_code") + ")";
+                subjectsWithCodes.add(subjectWithCode);
+            }
+
+            // Fetch club data and combine name with code
+            while (clubRs.next()) {
+                String clubWithCode = clubRs.getString("club_name") + " (" + clubRs.getString("club_code") + ")";
+                clubsWithCodes.add(clubWithCode);
+            }
+        } catch (SQLException e) {
+            // Handle exception properly
+            e.printStackTrace();
+            throw new SQLException("Error fetching subjects or clubs from the database.", e);
+        }
+
+        return new AcademicClubData(subjectsWithCodes, clubsWithCodes);
+    }
+
+
+
 
     private class LoginAction implements ActionListener {
         @Override
@@ -167,22 +406,7 @@ public class StudentPortalGUI {
     private class RegisterAction implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            String matricNumber = matricNumberField.getText();
-            String password = new String(passwordField.getPassword());
-            String email = JOptionPane.showInputDialog("Enter your email:");
-
-            if (matricNumber.isEmpty() || password.isEmpty() || email.isEmpty()) {
-                JOptionPane.showMessageDialog(frame, "Please fill all fields!");
-                return;
-            }
-
-            try {
-                registerUser(matricNumber, password, email);
-                JOptionPane.showMessageDialog(frame, "Registration successful! Please login.");
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(frame, "An error occurred during registration.");
-            }
+            showRegisterPanel();
         }
     }
 
@@ -211,23 +435,7 @@ public class StudentPortalGUI {
         public void actionPerformed(ActionEvent e) {
             String matricNumber = matricNumberField.getText();
             try {
-                Map<String, String> clubs = getStudentClubs(matricNumber);
-                StringBuilder result = new StringBuilder("Clubs:\n");
-                for (Map.Entry<String, String> entry : clubs.entrySet()) {
-                    result.append(entry.getKey()).append(" - ").append(entry.getValue()).append("\n");
-                }
-                resultArea.setText(result.toString());
-
-                int option = JOptionPane.showConfirmDialog(
-                        frame,
-                        "Would you like to generate a transcript?",
-                        "Generate Transcript",
-                        JOptionPane.YES_NO_OPTION
-                );
-
-                if (option == JOptionPane.YES_OPTION) {
-                    generateTranscript(matricNumber);
-                }
+                resultArea.setText(getStudentClubs(matricNumber));
             } catch (Exception ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(frame, "An error occurred while fetching clubs.");
@@ -240,12 +448,7 @@ public class StudentPortalGUI {
         public void actionPerformed(ActionEvent e) {
             String matricNumber = matricNumberField.getText();
             try {
-                Map<String, java.util.List<String>> positions = getStudentPositions(matricNumber);
-                StringBuilder result = new StringBuilder("Positions:\n");
-                for (String club : positions.keySet()) {
-                    result.append(club).append(": ").append(String.join(", ", positions.get(club))).append("\n");
-                }
-                resultArea.setText(result.toString());
+                resultArea.setText(getStudentPositions(matricNumber));
             } catch (Exception ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(frame, "An error occurred while fetching positions.");
@@ -258,14 +461,7 @@ public class StudentPortalGUI {
         public void actionPerformed(ActionEvent e) {
             String matricNumber = matricNumberField.getText();
             try {
-                Map<String, java.util.List<String>> activitiesMap = getStudentActivities(matricNumber);
-                StringBuilder result = new StringBuilder("Activities:\n");
-                for (java.util.List<String> activities : activitiesMap.values()) {
-                    for (String activity : activities) {
-                        result.append(activity).append("\n");
-                    }
-                }
-                resultArea.setText(result.toString());
+                resultArea.setText(getStudentActivities(matricNumber));
             } catch (Exception ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(frame, "An error occurred while fetching activities.");
@@ -283,6 +479,11 @@ public class StudentPortalGUI {
         layout.show(panel, "User");
     }
 
+    private void showRegisterPanel() {
+        CardLayout layout = (CardLayout) panel.getLayout();
+        layout.show(panel, "Register");
+    }
+
     private boolean validateCredentials(String matricNumber, String password) throws Exception {
         String query = "SELECT * FROM users WHERE matric_number = ? AND password = ?";
         try (Connection conn = DBHelper.getConnection();
@@ -295,110 +496,149 @@ public class StudentPortalGUI {
         }
     }
 
-    private void registerUser(String matricNumber, String password, String email) throws SQLException, Exception {
-        String query = "INSERT INTO users (matric_number, password, email) VALUES (?, ?, ?)";
-        try (Connection conn = DBHelper.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setString(1, matricNumber);
-            stmt.setString(2, password);
-            stmt.setString(3, email);
-            stmt.executeUpdate();
-        }
-    }
-
-    private String getEnrolledSubjects(String matricNumber) throws Exception {
-        String query = "SELECT s.subject_code, s.subject_name FROM academic_subjects s "
-                     + "JOIN users u ON FIND_IN_SET(s.subject_code, u.academic_subjects) > 0 "
-                     + "WHERE u.matric_number = ?";
-        StringBuilder subjects = new StringBuilder();
-        try (Connection conn = DBHelper.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setString(1, matricNumber);
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    subjects.append(rs.getString("subject_code"))
-                            .append(" - ").append(rs.getString("subject_name"))
-                            .append("\n");
-                }
-            }
-        }
-        return subjects.toString();
-    }
-
-    private Map<String, String> getStudentClubs(String matricNumber) throws SQLException, Exception {
-        String query = "SELECT c.club_code, c.club_name FROM clubs c "
-                     + "JOIN users u ON FIND_IN_SET(c.club_code, u.cocurricular_clubs) > 0 "
-                     + "WHERE u.matric_number = ?";
-        Map<String, String> studentClubs = new HashMap<>();
-        try (Connection conn = DBHelper.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setString(1, matricNumber);
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    studentClubs.put(rs.getString("club_code"), rs.getString("club_name"));
-                }
-            }
-        }
-        return studentClubs;
-    }
-
-    private Map<String, java.util.List<String>> getStudentPositions(String matricNumber) throws SQLException, Exception {
-        String query = "SELECT society_position, uniform_body_position, sports_club_position "
-                     + "FROM student_positions WHERE matric_number = ?";
-        Map<String, java.util.List<String>> positions = new HashMap<>();
-        try (Connection conn = DBHelper.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setString(1, matricNumber);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    addPositionToMap(positions, "Society", rs.getString("society_position"));
-                    addPositionToMap(positions, "Uniform Body", rs.getString("uniform_body_position"));
-                    addPositionToMap(positions, "Sports Club", rs.getString("sports_club_position"));
-                }
-            }
-        }
-        return positions;
-    }
-
-    private void addPositionToMap(Map<String, java.util.List<String>> map, String key, String value) {
-        if (value != null && !value.isEmpty()) {
-            map.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
-        }
-    }
-
-    private Map<String, java.util.List<String>> getStudentActivities(String matricNumber) throws SQLException, Exception {
-        String query = "SELECT al.club_code, al.activity_name, al.activity_level, al.achievement_level "
-                     + "FROM activities_log al "
-                     + "JOIN users u ON al.matric_number = u.matric_number "
-                     + "WHERE u.matric_number = ?";
-        Map<String, java.util.List<String>> activities = new HashMap<>();
-        try (Connection conn = DBHelper.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setString(1, matricNumber);
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    String activityInfo = String.format("Activity: %s, Level: %s, Achievement: %s",
-                            rs.getString("activity_name"), rs.getString("activity_level"), rs.getString("achievement_level"));
-                    activities.computeIfAbsent(rs.getString("club_code"), k -> new ArrayList<>()).add(activityInfo);
-                }
-            }
-        }
-        return activities;
-    }
-
-    private void generateTranscript(String matricNumber) throws SQLException, Exception {
-        // Create an instance of CoCurriculumMarksCalculator
-        CoCurriculumMarksCalculator calculator = new CoCurriculumMarksCalculator();
+    private void registerUser(String matricNumber, String password, String email, String subjectCodes, String clubCode) throws SQLException, Exception {
+        // Automatically generate email from matric number
+        email = matricNumber + "@student.fop"; 
     
-        // Generate the transcript for the given matric number
-        String transcript = calculator.generateTranscript(matricNumber);
+        // Subject codes and club codes should already be passed as comma-separated values (e.g., "S001,S002,S003")
+        String query = "INSERT INTO users (matric_number, password, email, academic_subjects, cocurricular_clubs) VALUES (?, ?, ?, ?, ?)";
     
-        // Show the generated transcript in a message dialog
-        JOptionPane.showMessageDialog(frame, transcript, "Co-curricular Transcript", JOptionPane.INFORMATION_MESSAGE);
+        try (Connection conn = DBHelper.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            
+            // Set the matric number
+            stmt.setString(1, matricNumber);  
+            
+            // Set the password
+            stmt.setString(2, password);      
+            
+            // Set the generated email
+            stmt.setString(3, email);         
+        
+            // Set the subject codes (comma-separated list of subject codes)
+            stmt.setString(4, subjectCodes);  // Pass subject codes directly
+            
+            // Set the selected club code (single club code)
+            stmt.setString(5, clubCode);     // Pass the selected club code
+            
+            // Execute the query
+            stmt.executeUpdate();             
+        }
     }
     
+    
+
+    private void saveUserToFile(String matricNumber, String password, String email, String subjectCodes, String clubCodes) throws IOException {
+        String filePath = "data/UserData.txt";
+    
+        // Ensure that subjectCodes and clubCodes are non-null and not empty
+        if (subjectCodes == null || subjectCodes.isEmpty()) {
+            subjectCodes = "No subjects selected";  // Provide a fallback value if no subjects are selected
+        }
+        if (clubCodes == null || clubCodes.isEmpty()) {
+            clubCodes = "No clubs selected";  // Provide a fallback value if no clubs are selected
+        }
+        
+        // Ensure that all arguments are valid (non-null and non-empty)
+        if (email == null || email.isEmpty()) {
+            email = "No email provided";  // Default value for email if it's empty or null
+        }
+        if (password == null || password.isEmpty()) {
+            password = "No password provided";  // Default value for password if it's empty or null
+        }
+        
+        try (FileWriter fileWriter = new FileWriter(filePath, true);
+             BufferedWriter bufferedWriter = new BufferedWriter(fileWriter)) {
+        
+            // Ensure correct number of arguments (5 %s in format)
+            String userData = String.format("%s\n%s\n%s\n%s\n%s", 
+                                            email,        // email (MatricNumber@student.fop)
+                                            matricNumber, // matric number
+                                            password,     // password
+                                            subjectCodes, // comma-separated subject codes
+                                            clubCodes);   // comma-separated club codes
+        
+            // Write the formatted string to the file and add a newline after each user entry
+            bufferedWriter.write(userData);
+            bufferedWriter.newLine();  // Add a new line after each user's entry for clarity
+        }
+    }
+    
+    
+    
+    
+
+    private String getEnrolledSubjects(String matricNumber) throws SQLException, Exception {
+        String query = "SELECT subject_name FROM subjects WHERE matric_number = ?";
+        try (Connection conn = DBHelper.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, matricNumber);
+            try (ResultSet rs = stmt.executeQuery()) {
+                StringBuilder subjects = new StringBuilder("Enrolled Subjects:\n");
+                while (rs.next()) {
+                    subjects.append(rs.getString("subject_name")).append("\n");
+                }
+                return subjects.toString();
+            }
+        }
+    }
+
+    private String getStudentClubs(String matricNumber) throws SQLException, Exception {
+        String query = "SELECT club_name FROM clubs WHERE matric_number = ?";
+        try (Connection conn = DBHelper.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, matricNumber);
+            try (ResultSet rs = stmt.executeQuery()) {
+                StringBuilder clubs = new StringBuilder("Clubs:\n");
+                while (rs.next()) {
+                    clubs.append(rs.getString("club_name")).append("\n");
+                }
+                return clubs.toString();
+            }
+        }
+    }
+
+    private String getStudentPositions(String matricNumber) throws SQLException, Exception {
+        String query = "SELECT position_name FROM positions WHERE matric_number = ?";
+        try (Connection conn = DBHelper.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, matricNumber);
+            try (ResultSet rs = stmt.executeQuery()) {
+                StringBuilder positions = new StringBuilder("Positions:\n");
+                while (rs.next()) {
+                    positions.append(rs.getString("position_name")).append("\n");
+                }
+                return positions.toString();
+            }
+        }
+    }
+
+    private String getStudentActivities(String matricNumber) throws SQLException, Exception {
+        String query = "SELECT activity_name FROM activities WHERE matric_number = ?";
+        try (Connection conn = DBHelper.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, matricNumber);
+            try (ResultSet rs = stmt.executeQuery()) {
+                StringBuilder activities = new StringBuilder("Activities:\n");
+                while (rs.next()) {
+                    activities.append(rs.getString("activity_name")).append("\n");
+                }
+                return activities.toString();
+            }
+        }
+    }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(StudentPortalGUI::new);
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    new StudentPortalGUI();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    JOptionPane.showMessageDialog(null, "An error occurred while starting the application.");
+                }
+            }
+        });
     }
 }
