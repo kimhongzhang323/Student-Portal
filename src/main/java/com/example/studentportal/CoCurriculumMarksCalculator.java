@@ -10,6 +10,7 @@ import java.util.List;
 
 import javax.swing.JOptionPane;
 
+
 public class CoCurriculumMarksCalculator {
 
     // Database connection details (URL, username, and password)
@@ -19,8 +20,6 @@ public class CoCurriculumMarksCalculator {
 
     // Main entry point of the program
     public static void main(String[] args) throws Exception {
-        // Get the matric number from the application (simulated here for now)
-        String matricNumber = getMatricNumberFromApplication();
 
         // If matric number is null or empty, show an error message and exit
         if (matricNumber == null || matricNumber.isEmpty()) {
@@ -34,11 +33,6 @@ public class CoCurriculumMarksCalculator {
 
         // Show the generated transcript in a dialog box
         JOptionPane.showMessageDialog(null, transcript, "Co-curricular Transcript", JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    // Simulated method to get the matric number (In a real application, this would be dynamic)
-    private static String getMatricNumberFromApplication() {
-        return "s100201";  // Simulated student matric number
     }
 
     // Method to generate a full transcript for a student based on their matric number
@@ -135,7 +129,8 @@ public class CoCurriculumMarksCalculator {
     }
 
     // Method to retrieve the student's clubs from the database
-    private List<StudentClubPosition> getStudentClubPositions(String matricNumber) throws SQLException {
+    // Method to retrieve the student's clubs from the database
+    public List<StudentClubPosition> getStudentClubPositions(String matricNumber) throws SQLException {
         List<StudentClubPosition> positions = new ArrayList<>();
 
         try (Connection conn = DriverManager.getConnection(DATABASE_URL, USER, PASSWORD)) {
@@ -148,15 +143,15 @@ public class CoCurriculumMarksCalculator {
                     if (rs.next()) {
                         String cocurricularClubs = rs.getString("cocurricular_clubs");
 
-                        // Step 2: Split the cocurricular_clubs into individual club codes
+                        // Split the cocurricular_clubs into individual club codes
                         String[] clubCodes = cocurricularClubs.split(",");
 
-                        // Step 3: Query the clubs table to retrieve information about each club
+                        // Query the clubs table to retrieve information about each club
                         for (String clubCode : clubCodes) {
                             String clubQuery = "SELECT club_code, club_name, category FROM clubs WHERE club_code = ?";
 
                             try (PreparedStatement clubStmt = conn.prepareStatement(clubQuery)) {
-                                clubStmt.setString(1, clubCode.trim());  // Trim any extra spaces around club code
+                                clubStmt.setString(1, clubCode.trim());
 
                                 try (ResultSet clubRs = clubStmt.executeQuery()) {
                                     if (clubRs.next()) {
@@ -171,8 +166,10 @@ public class CoCurriculumMarksCalculator {
                 }
             }
         }
+
         return positions;
     }
+
 
     // Method to get details of the selected activity, level, and achievement level
     private ActivityDetails getActivityDetails(String matricNumber, String clubCode) throws SQLException {
