@@ -39,23 +39,8 @@ public class User {
         return salt;
     }
 
-    public void setEmail(String email){
-        if (email.contains("@siswa.um.edu.my")){
-            this.email = email;
-        }
-        else{
-            System.out.println("Invalid email format. Please enter a valid email.");
-        }
-    } 
-
-   @Override
-    public String toString() {
-        return "User{" +
-                "email='" + email + '\'' +
-                ", matricNumber=" + matricNumber +
-                ", password='" + password + '\'' +
-                ", academicSubjects=" + academicSubjects +
-                ", coCurricularClubs=" + coCurricularClubs +
-                '}';
-    } 
+    public void setSalt(byte[] salt) {
+        this.salt = salt;
+    }
+    
 }
