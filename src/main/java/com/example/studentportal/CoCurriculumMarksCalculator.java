@@ -10,7 +10,6 @@ import java.util.List;
 
 import javax.swing.JOptionPane;
 
-
 public class CoCurriculumMarksCalculator {
 
     // Database connection details (URL, username, and password)
@@ -20,7 +19,7 @@ public class CoCurriculumMarksCalculator {
 
     // Main entry point of the program
     public static void main(String[] args) throws Exception {
-
+        
         // If matric number is null or empty, show an error message and exit
         if (matricNumber == null || matricNumber.isEmpty()) {
             JOptionPane.showMessageDialog(null, "Matric number is not available. Exiting the program.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -129,7 +128,6 @@ public class CoCurriculumMarksCalculator {
     }
 
     // Method to retrieve the student's clubs from the database
-    // Method to retrieve the student's clubs from the database
     public List<StudentClubPosition> getStudentClubPositions(String matricNumber) throws SQLException {
         List<StudentClubPosition> positions = new ArrayList<>();
 
@@ -169,7 +167,6 @@ public class CoCurriculumMarksCalculator {
 
         return positions;
     }
-
 
     // Method to get details of the selected activity, level, and achievement level
     private ActivityDetails getActivityDetails(String matricNumber, String clubCode) throws SQLException {
