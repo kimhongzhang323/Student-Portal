@@ -443,68 +443,93 @@ public class StudentPortalGUI {
         public void actionPerformed(ActionEvent e) {
             String matricNumber = matricNumberField.getText();
             try {
-                resultArea.setText(getEnrolledSubjects(matricNumber));
+                String subjects = getEnrolledSubjects(matricNumber);
+                resultArea.setText(subjects);
             } catch (Exception ex) {
                 ex.printStackTrace();
-                JOptionPane.showMessageDialog(frame, "An error occurred while fetching enrolled subjects.");
+                JOptionPane.showMessageDialog(frame, "An error occurred while fetching subjects.");
             }
         }
     }
+
     private class ClubsAction implements ActionListener {
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        String matricNumber = matricNumberField.getText();
-
-        // Validate that matric number is not empty
-        if (matricNumber == null || matricNumber.isEmpty()) {
-            JOptionPane.showMessageDialog(frame, "Matric number cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        try {
-            CoCurriculumMarksCalculator calculator = new CoCurriculumMarksCalculator();
-
-            // Fetch the student's clubs
-            List<CoCurriculumMarksCalculator.StudentClubPosition> clubs = calculator.getStudentClubPositions(matricNumber);
-
-            if (clubs.isEmpty()) {
-                resultArea.setText("No clubs found for matric number: " + matricNumber);
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String matricNumber = matricNumberField.getText();
+    
+            // Validate that matric number is not empty
+            if (matricNumber == null || matricNumber.isEmpty()) {
+                JOptionPane.showMessageDialog(frame, "Matric number cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-
-            StringBuilder clubsText = new StringBuilder();
-            for (CoCurriculumMarksCalculator.StudentClubPosition club : clubs) {
-                clubsText.append(club.clubCode).append(" - ").append(club.clubName).append("\n");
+    
+            try {
+                CoCurriculumMarksCalculator calculator = new CoCurriculumMarksCalculator();
+    
+                // Fetch the student's clubs
+                List<CoCurriculumMarksCalculator.StudentClubPosition> clubs = calculator.getStudentClubPositions(matricNumber);
+    
+                if (clubs.isEmpty()) {
+                    resultArea.setText("No clubs found for matric number: " + matricNumber);
+                    return;
+                }
+    
+                // Categorize clubs based on their code
+                StringBuilder societiesText = new StringBuilder();
+                StringBuilder uniformBodyText = new StringBuilder();
+                StringBuilder sportsClubText = new StringBuilder();
+    
+                for (CoCurriculumMarksCalculator.StudentClubPosition club : clubs) {
+                    // Categorize clubs
+                    if (club.clubCode.startsWith("P")) {
+                        societiesText.append(club.clubCode).append(" - ").append(club.clubName).append("\n");
+                    } else if (club.clubCode.startsWith("B")) {
+                        uniformBodyText.append(club.clubCode).append(" - ").append(club.clubName).append("\n");
+                    } else if (club.clubCode.startsWith("S")) {
+                        sportsClubText.append(club.clubCode).append(" - ").append(club.clubName).append("\n");
+                    }
+                }
+    
+                // Build the final text for the result area
+                StringBuilder clubsText = new StringBuilder();
+                if (societiesText.length() > 0) {
+                    clubsText.append("Societies:\n").append(societiesText).append("\n");
+                }
+                if (uniformBodyText.length() > 0) {
+                    clubsText.append("Uniform Body:\n").append(uniformBodyText).append("\n");
+                }
+                if (sportsClubText.length() > 0) {
+                    clubsText.append("Sports Club:\n").append(sportsClubText).append("\n");
+                }
+    
+                // Display the categorized list of clubs in the result area
+                resultArea.setText(clubsText.toString());
+    
+                // Ask the user if they want to generate the full transcript
+                int option = JOptionPane.showConfirmDialog(frame,
+                        "Would you like to generate the full co-curricular transcript?",
+                        "Generate Transcript", JOptionPane.YES_NO_OPTION);
+    
+                if (option == JOptionPane.YES_OPTION) {
+                    // Generate the transcript
+                    String transcript = calculator.generateTranscript(matricNumber);
+    
+                    // Display the transcript
+                    JOptionPane.showMessageDialog(frame, transcript, "Co-curricular Transcript", JOptionPane.INFORMATION_MESSAGE);
+    
+                    // Ask if the user wants to email the transcript
+                }
+    
+            } catch (SQLException sqlEx) {
+                sqlEx.printStackTrace();
+                JOptionPane.showMessageDialog(frame, "Database error: " + sqlEx.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(frame, "An unexpected error occurred: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
-            
-
-            // Display the list of clubs in the result area
-            resultArea.setText(clubsText.toString());
-
-            // Ask the user if they want to generate the full transcript
-            int option = JOptionPane.showConfirmDialog(frame,
-                    "Would you like to generate the full co-curricular transcript?",
-                    "Generate Transcript", JOptionPane.YES_NO_OPTION);
-
-            if (option == JOptionPane.YES_OPTION) {
-                // Generate the transcript
-                String transcript = calculator.generateTranscript(matricNumber);
-
-                // Display the transcript
-                JOptionPane.showMessageDialog(frame, transcript, "Co-curricular Transcript", JOptionPane.INFORMATION_MESSAGE);
-
-                // Ask if the user wants to email the transcript
-            }
-
-        } catch (SQLException sqlEx) {
-            sqlEx.printStackTrace();
-            JOptionPane.showMessageDialog(frame, "Database error: " + sqlEx.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            JOptionPane.showMessageDialog(frame, "An unexpected error occurred: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-}
+    
     private class PositionsAction implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
