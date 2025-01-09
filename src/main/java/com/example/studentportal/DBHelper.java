@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class DBHelper {
 
@@ -20,7 +21,7 @@ public class DBHelper {
             
             // Establish the connection to the database
             return DriverManager.getConnection(DB_URL, USER, PASS);
-        } catch (Exception e) {
+        } catch (ClassNotFoundException | SQLException e) {
             // If an exception occurs while connecting to the database, throw a new exception with a message
             throw new Exception("Error getting database connection", e);
         }
