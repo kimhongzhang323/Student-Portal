@@ -23,10 +23,12 @@ import java.sql.ResultSet; // Importing ResultSet for retrieving data from a dat
 import java.sql.SQLException; // Importing SQLException to handle SQL exceptions
 import java.sql.Statement; // Importing Statement for executing simple SQL queries
 import java.util.ArrayList; // Importing ArrayList for using dynamic arrays that grow in size as needed
+import java.util.Arrays;
 import java.util.Base64; // Importing Base64 for encoding and decoding binary data into ASCII characters
 import java.util.HashMap; // Importing HashMap for storing key-value pairs in a map
 import java.util.List; // Importing List interface for working with lists (dynamic arrays)
 import java.util.Map; // Importing Map interface for working with key-value pairs (similar to HashMap)
+import java.util.stream.Collectors;
 
 import javax.swing.BoxLayout; // Importing BoxLayout for arranging components vertically or horizontally
 import javax.swing.JButton; // Importing JButton for creating buttons in the GUI
@@ -356,7 +358,6 @@ public class StudentPortalGUI {
         panel.add(registerPanel, "Register");
     }
     
-
     public class AcademicClubData {
         private List<String> subjectsWithCodes;
         private List<String> clubsWithCodes;
@@ -667,45 +668,67 @@ public class StudentPortalGUI {
         return Base64.getEncoder().encodeToString(hashedPassword);
     }
 
+    private String extractCodes(String combinedData) {
+        if (combinedData == null || combinedData.isEmpty()) {
+            return ""; // Return an empty string if no data is provided
+        }
+
+        // Split the input by commas and extract the code part (inside parentheses)
+        return Arrays.stream(combinedData.split(","))
+                .map(data -> data.trim()) // Remove leading/trailing spaces
+                .filter(data -> data.contains("(") && data.contains(")")) // Ensure format with parentheses
+                .map(data -> data.substring(data.indexOf('(') + 1, data.indexOf(')'))) // Extract code within parentheses
+                .collect(Collectors.joining(",")); // Join the codes with commas
+    }
+
+
     // Method to register a new user
     public void registerUser(String matricNumber, String password, String email, String subjectCodes, String clubCode) throws SQLException, Exception {
         // Automatically generate email from matric number if email is not provided
         if (email == null || email.isEmpty()) {
             email = matricNumber + "@student.fop";  // Default email format
         }
-
+    
         // Generate salt for password security
         byte[] salt = generateSalt();  // Generate a random salt
         // Hash the password using the generated salt
         String hashedPassword = hashPassword(password, salt);
-
+    
         // Combine the salt and hashed password for secure storage in the database
         String combinedPassword = Base64.getEncoder().encodeToString(salt) + ":" + hashedPassword;
-
+    
+        // Extract codes from the subjectCodes and clubCode if necessary
+        // This ensures the values passed are just codes, separated by commas
+        subjectCodes = extractCodes(subjectCodes); // Extract just the codes for subjects
+        clubCode = extractCodes(clubCode);         // Extract just the codes for clubs
+    
         // SQL query to insert the user data into the 'users' table
         String query = "INSERT INTO users (matric_number, password, email, academic_subjects, cocurricular_clubs) VALUES (?, ?, ?, ?, ?)";
-
+    
         // Open a connection to the database and prepare the statement
         try (Connection conn = DBHelper.getConnection();  // Get database connection
-            PreparedStatement stmt = conn.prepareStatement(query)) {  // Prepare the query
-
+             PreparedStatement stmt = conn.prepareStatement(query)) {  // Prepare the query
+    
             // Set the parameters for the SQL query
             stmt.setString(1, matricNumber);  // Set matric number
             stmt.setString(2, combinedPassword); // Set the combined salt and hashed password
             stmt.setString(3, email);         // Set email
             stmt.setString(4, subjectCodes);  // Set academic subject codes (comma-separated)
-            stmt.setString(5, clubCode);      // Set club code (comma-separated)
-
+            stmt.setString(5, clubCode);      // Set club codes (comma-separated)
+    
             // Execute the query to insert the user data into the database
             stmt.executeUpdate();
         }
     }
+    
 
     // Method to save user data to a file
     public void saveUserToFile(String matricNumber, String password, String email, String subjectCodes, String clubCodes) throws IOException {
         // Define the path to the file where user data will be saved
         String filePath = "data/UserData.txt";
-        
+        subjectCodes = extractCodes(subjectCodes); // Extract just the codes for subjects
+        clubCodes = extractCodes(clubCodes);       // Extract just the codes for clubs
+    
         // Ensure that subjectCodes and clubCodes are non-null and not empty
         if (subjectCodes == null || subjectCodes.isEmpty()) {
             subjectCodes = "No subjects selected";  // Provide a fallback value if no subjects are selected
@@ -713,7 +736,7 @@ public class StudentPortalGUI {
         if (clubCodes == null || clubCodes.isEmpty()) {
             clubCodes = "No clubs selected";  // Provide a fallback value if no clubs are selected
         }
-
+    
         // Ensure that email and password are non-null and properly formatted
         if (email == null || email.isEmpty()) {
             email = "No email provided";  // Default value for email if it's empty or null
@@ -721,20 +744,20 @@ public class StudentPortalGUI {
         if (password == null || password.isEmpty()) {
             password = "No password provided";  // Default value for password if it's empty or null
         }
-
+    
         // Format the email correctly as matricNumber@student.fop if it doesn't already contain "@"
         if (!email.contains("@")) {
             email = matricNumber + "@student.fop";  // Ensure the email is formatted correctly
         }
-
+    
         // Open the file in append mode, so data is added without overwriting existing entries
         try (FileWriter fileWriter = new FileWriter(filePath, true);
-            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter)) {
-
+             BufferedWriter bufferedWriter = new BufferedWriter(fileWriter)) {
+    
             // Remove any extra spaces between subject and club codes
             subjectCodes = subjectCodes.replaceAll("\\s+", "");  // Remove any extra spaces between codes
-            clubCodes = clubCodes.replaceAll("\\s+", "");  // Remove any extra spaces between codes
-
+            clubCodes = clubCodes.replaceAll("\\s+", "");        // Remove any extra spaces between codes
+    
             // Format the data in the required structure (matching the example format)
             String userData = String.format("%s\n%s\n%s\n%s\n%s", 
                                             email,        // email (MatricNumber@student.fop)
@@ -742,12 +765,14 @@ public class StudentPortalGUI {
                                             password,     // password
                                             subjectCodes, // comma-separated subject codes
                                             clubCodes);   // comma-separated club codes
-
-            // Write the formatted user data to the file
-            bufferedWriter.write(userData);
+    
+            // Add an empty line before the user data
+            bufferedWriter.newLine();  // Write an extra empty line for spacing
+            bufferedWriter.write(userData); // Write the user data
             bufferedWriter.newLine();  // Add a new line after each user's entry for clarity
         }
     }
+    
 
     // Method to get the list of subjects a student is enrolled in from the database
     private String getEnrolledSubjects(String matricNumber) throws Exception {
